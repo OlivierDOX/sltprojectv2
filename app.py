@@ -46,25 +46,38 @@ produtos = {
 larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
-# Entrada de demandas com checkbox e campo de peso no mesmo lugar, com rolagem
+# Aplicando CSS para habilitar a rolagem dentro do Expander
+st.markdown(
+    """
+    <style>
+        .scrollable-expander {
+            max-height: 300px;  /* Define uma altura fixa para a rolagem */
+            overflow-y: auto;   /* Adiciona rolagem vertical quando necessário */
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Entrada de demandas com barra de rolagem no expander
 with st.expander("Selecione os produtos e defina os pesos"):
     with st.container():
+        st.markdown('<div class="scrollable-expander">', unsafe_allow_html=True)  # Início da área rolável
+
         dados_demanda = []
+        for produto, largura in produtos.items():
+            col1, col2 = st.columns([3, 1])  # Ajusta o espaço para checkbox e peso
+            with col1:
+                selecionado = st.checkbox(produto, value=False, key=f"chk_{produto}")
+            with col2:
+                peso = st.number_input("", min_value=1, step=1000, value=1000, key=f"peso_{produto}")
 
-        # Criar uma área rolável para os produtos
-        produtos_scroll = st.container()
+            # Se o checkbox estiver marcado, adiciona à demanda
+            if selecionado and peso > 0:
+                dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
 
-        with produtos_scroll:
-            for produto, largura in produtos.items():
-                col1, col2 = st.columns([3, 1])  # Ajusta o espaço para checkbox e peso
-                with col1:
-                    selecionado = st.checkbox(produto, value=False, key=f"chk_{produto}")
-                with col2:
-                    peso = st.number_input("", min_value=1, step=1000, value=1000, key=f"peso_{produto}")
+        st.markdown('</div>', unsafe_allow_html=True)  # Fim da área rolável
 
-                # Se o checkbox estiver marcado, adiciona à demanda
-                if selecionado and peso > 0:
-                    dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
 
 # Convertendo para DataFrame
 demand = pd.DataFrame(dados_demanda)
