@@ -46,18 +46,20 @@ produtos = {
 larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
-with st.expander("Selecione os produtos"):
-    df_produtos = pd.DataFrame({"Produto": list(produtos.keys()), "Selecionado": [False] * len(produtos)})
-    df_editado = st.data_editor(df_produtos, num_rows="fixed", use_container_width=True, hide_index=True)
-    produtos_selecionados = df_editado[df_editado["Selecionado"] == True]["Produto"].tolist()
+with st.expander("Selecione os produtos e defina os pesos"):
+    dados_demanda = []
+    
+    for produto, largura in produtos.items():
+        col1, col2 = st.columns([3, 1])  # Divide espaço entre nome do produto e peso
+        with col1:
+            selecionado = st.checkbox(produto, value=False, key=f"chk_{produto}")
+        with col2:
+            peso = st.number_input(f"Peso ({produto})", min_value=1, step=1, value=0, key=f"peso_{produto}")
 
-# Criando DataFrame para armazenar a demanda
-dados_demanda = []
+        # Se o checkbox estiver marcado, adiciona à demanda
+        if selecionado and peso > 0:
+            dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
 
-for produto in produtos_selecionados:
-    peso = st.number_input(f"Peso para {produto} (kg)", min_value=1, step=1)
-    largura = produtos[produto]
-    dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
 
 # Garantindo que demand seja um DataFrame
 demand = pd.DataFrame(dados_demanda)
