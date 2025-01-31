@@ -60,7 +60,7 @@ with st.expander("Selecione os produtos e defina os pesos"):
                 with col1:
                     selecionado = st.checkbox(produto, value=False, key=f"chk_{produto}")
                 with col2:
-                    peso = st.number_input("", min_value=1, step=1, value=0, key=f"peso_{produto}")
+                    peso = st.number_input("", min_value=1, step=1000, value=1000, key=f"peso_{produto}")
 
                 # Se o checkbox estiver marcado, adiciona à demanda
                 if selecionado and peso > 0:
