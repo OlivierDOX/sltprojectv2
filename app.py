@@ -219,7 +219,8 @@ if st.button("Calcular"):
             proporcao = peso_bobina / melhor_largura
 
             # Gerar a tabela final usando o DataFrame de demandas
-            tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao, produtos)
+            tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
+
 
             st.subheader("Melhor largura de bobina")
             st.write(f"{melhor_largura} mm")
