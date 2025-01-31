@@ -47,44 +47,32 @@ larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
 # Aplicando CSS para habilitar a rolagem dentro do Expander
-st.markdown(
-    """
-    <style>
-        .scrollable-expander {
-            max-height: 300px;  /* Define uma altura fixa para a rolagem */
-            overflow-y: auto;   /* Adiciona rolagem vertical quando necessário */
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# Entrada de demandas com barra de rolagem no expander
+# Entrada de demandas com barra de rolagem dentro do expander
 with st.expander("Selecione os produtos e defina os pesos"):
-    with st.container():
-        st.markdown('<div class="scrollable-expander">', unsafe_allow_html=True)  # Início da área rolável
+    df_produtos = pd.DataFrame({
+        "Produto": list(produtos.keys()),
+        "Selecionado": [False] * len(produtos),
+        "Peso (kg)": [1000] * len(produtos)  # Valor padrão para o peso
+    })
 
-        dados_demanda = []
-        for produto, largura in produtos.items():
-            col1, col2 = st.columns([3, 1])  # Ajusta o espaço para checkbox e peso
-            with col1:
-                selecionado = st.checkbox(produto, value=False, key=f"chk_{produto}")
-            with col2:
-                peso = st.number_input("", min_value=1, step=1000, value=1000, key=f"peso_{produto}")
+    # Editor de dados com barra de rolagem automática
+    df_editado = st.data_editor(
+        df_produtos,
+        num_rows="fixed",  # Mantém número fixo de linhas
+        use_container_width=True,
+        hide_index=True
+    )
 
-            # Se o checkbox estiver marcado, adiciona à demanda
-            if selecionado and peso > 0:
-                dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
+    # Filtrando apenas os produtos selecionados
+    produtos_selecionados = df_editado[df_editado["Selecionado"] == True]
 
-        st.markdown('</div>', unsafe_allow_html=True)  # Fim da área rolável
+# Convertendo os produtos selecionados para o DataFrame final
+demand = produtos_selecionados[["Produto", "Peso (kg)"]].copy()
+demand["Largura"] = demand["Produto"].map(produtos)  # Adiciona largura com base no dicionário original
 
-
-# Convertendo para DataFrame
-demand = pd.DataFrame(dados_demanda)
-
-# Exibindo a demanda atualizada
+# Exibir a demanda selecionada
 st.write("Demanda Selecionada:")
-st.dataframe(demand, use_container_width=True, height=300)  # Adiciona rolagem na exibição da demanda
+st.dataframe(demand, use_container_width=True)
 
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
