@@ -134,49 +134,63 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
     return pd.DataFrame(resultado)
 
 
-def gerar_tabela_final(resultado, demand, proporcao, produtos):
+def gerar_tabela_final(resultado, demand, proporcao):
+    # Inicializa pesos_totais com todas as larguras e produtos do demand
     pesos_totais = {row["Largura"]: 0 for _, row in demand.iterrows()}
-
+    
     for _, linha in resultado.iterrows():
         combinacao = linha["Plano de Corte"]
         quantidade = linha["Quantidade"]
+
         for item in combinacao:
             largura = int(str(item).split('|')[0].strip())
+
+            # Se a largura não estiver em pesos_totais (pode ter sido adicionada no resultado e não no demand), inicializa
+            if largura not in pesos_totais:
+                pesos_totais[largura] = 0
+
             pesos_totais[largura] += quantidade * largura * proporcao
 
     tabela_final = []
+    
+    # Garante que a tabela final contenha apenas os produtos do demand
     for _, row in demand.iterrows():
+        produto = row["Produto"]
         largura = row["Largura"]
         peso_planejado = row["Peso"]
         peso_total = pesos_totais.get(largura, 0)
         percentual_atendido = (peso_total / peso_planejado * 100) if peso_planejado > 0 else 0
-        produto = next((key for key, value in produtos.items() if value == largura), "Produto Desconhecido")
 
         tabela_final.append({
-            "Largura (mm)": largura,
             "Produto": produto,
+            "Largura (mm)": largura,
             "Demanda Planejada (kg)": peso_planejado,
             "Peso Total (kg)": round(peso_total, 0),
             "Atendimento (%)": round(percentual_atendido, 1),
         })
 
+    # Cálculo dos totais
     total_peso_planejado = demand["Peso"].sum()
     total_peso_atendido = sum(pesos_totais.values())
 
     totais = {
-        "Largura (mm)": "Total",
-        "Produto": "",
+        "Produto": "Total",
+        "Largura (mm)": "",
         "Demanda Planejada (kg)": total_peso_planejado,
         "Peso Total (kg)": round(total_peso_atendido, 0),
         "Atendimento (%)": round((total_peso_atendido / total_peso_planejado) * 100, 1) if total_peso_planejado > 0 else 0,
     }
 
     tabela_final.append(totais)
+    
+    # Criando DataFrame final
     df_final = pd.DataFrame(tabela_final)
 
+    # Formatação para manter valores numéricos legíveis com separadores
     df_final = df_final.applymap(lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, (int, float)) and x == round(x, 0) else (f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x))
 
     return df_final
+
 
 
 
