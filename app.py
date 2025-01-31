@@ -49,14 +49,10 @@ larguras_slitters = list(produtos.values())
 # Entrada de demandas com barra de rolagem dentro do expander
 with st.expander("Selecione os produtos e defina os pesos"):
     df_produtos = pd.DataFrame({
-    "Produto": list(produtos.keys()),
-    "Selecionado": [False] * len(produtos),
-    "Peso": [None] * len(produtos)  # Define o valor padrão como nulo
+        "Produto": list(produtos.keys()),
+        "Selecionado": [False] * len(produtos),
+        "Peso": [None] * len(produtos)  # Agora o nome da coluna é "Peso"
     })
-
-    # Aplicando formatação para separar milhares com "."
-
-
 
     # Editor de dados com barra de rolagem automática
     df_editado = st.data_editor(
