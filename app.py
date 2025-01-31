@@ -63,7 +63,7 @@ for produto in produtos_selecionados:
 demand = pd.DataFrame(dados_demanda)
 
 st.write("Demanda:")
-st.dataframe(df_demanda, use_container_width=True)
+st.dataframe(demand, use_container_width=True)
 
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
@@ -183,42 +183,46 @@ def gerar_tabela_final(resultado, demand, proporcao, produtos):
 def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
+
 # Botão para calcular
 if st.button("Calcular"):
-    melhor_resultado = None
-    melhor_largura = None
-    
-    # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
-    for largura_bobina in larguras_bobina:
-        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
-        
-        if resultado is not None:
-            if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
-                melhor_resultado = resultado
-                melhor_largura = largura_bobina
-
-    if melhor_resultado is not None:
-        proporcao = peso_bobina / melhor_largura
-
-        # Gerar a tabela final usando o DataFrame de demandas
-        tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao, produtos)
-        
-        st.subheader("Melhor largura de bobina")
-        st.write(f"{melhor_largura} mm")
-
-        st.subheader("Resultado dos Planos de Corte")
-        st.dataframe(melhor_resultado)
-
-        st.subheader("Tabela Final")
-        st.dataframe(tabela_final)
-
-        # Preparar e oferecer o resultado para download em TXT
-        resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
-        st.download_button(
-            label="Baixar Resultado (TXT)",
-            data=resultado_txt.encode("utf-8"),
-            file_name="resultado_corte.txt",
-            mime="text/plain"
-        )
+    if demand.empty:
+        st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
     else:
-        st.error("Nenhuma solução encontrada!")
+        melhor_resultado = None
+        melhor_largura = None
+
+        # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
+        for largura_bobina in larguras_bobina:
+            resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
+
+            if resultado is not None:
+                if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
+                    melhor_resultado = resultado
+                    melhor_largura = largura_bobina
+
+        if melhor_resultado is not None:
+            proporcao = peso_bobina / melhor_largura
+
+            # Gerar a tabela final usando o DataFrame de demandas
+            tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao, produtos)
+
+            st.subheader("Melhor largura de bobina")
+            st.write(f"{melhor_largura} mm")
+
+            st.subheader("Resultado dos Planos de Corte")
+            st.dataframe(melhor_resultado)
+
+            st.subheader("Tabela Final")
+            st.dataframe(tabela_final)
+
+            # Preparar e oferecer o resultado para download em TXT
+            resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
+            st.download_button(
+                label="Baixar Resultado (TXT)",
+                data=resultado_txt.encode("utf-8"),
+                file_name="resultado_corte.txt",
+                mime="text/plain"
+            )
+        else:
+            st.error("Nenhuma solução encontrada!")
