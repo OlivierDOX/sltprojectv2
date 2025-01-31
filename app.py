@@ -51,7 +51,7 @@ with st.expander("Selecione os produtos e defina os pesos"):
     df_produtos = pd.DataFrame({
         "Produto": list(produtos.keys()),
         "Selecionado": [False] * len(produtos),
-        "Peso": [None] * len(produtos)  # Agora o nome da coluna é "Peso"
+        "Peso": [1000] * len(produtos)  # Agora o nome da coluna é "Peso"
     })
 
     # Editor de dados com barra de rolagem automática
