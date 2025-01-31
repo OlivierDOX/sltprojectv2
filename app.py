@@ -46,13 +46,12 @@ produtos = {
 larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
-# Aplicando CSS para habilitar a rolagem dentro do Expander
 # Entrada de demandas com barra de rolagem dentro do expander
 with st.expander("Selecione os produtos e defina os pesos"):
     df_produtos = pd.DataFrame({
         "Produto": list(produtos.keys()),
         "Selecionado": [False] * len(produtos),
-        "Peso (kg)": [1000] * len(produtos)  # Valor padrão para o peso
+        "Peso": [1000] * len(produtos)  # Agora o nome da coluna é "Peso"
     })
 
     # Editor de dados com barra de rolagem automática
@@ -67,12 +66,13 @@ with st.expander("Selecione os produtos e defina os pesos"):
     produtos_selecionados = df_editado[df_editado["Selecionado"] == True]
 
 # Convertendo os produtos selecionados para o DataFrame final
-demand = produtos_selecionados[["Produto", "Peso (kg)"]].copy()
+demand = produtos_selecionados[["Produto", "Peso"]].copy()  # Agora acessamos corretamente "Peso"
 demand["Largura"] = demand["Produto"].map(produtos)  # Adiciona largura com base no dicionário original
 
 # Exibir a demanda selecionada
 st.write("Demanda Selecionada:")
 st.dataframe(demand, use_container_width=True)
+
 
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
