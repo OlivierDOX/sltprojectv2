@@ -52,14 +52,15 @@ with st.expander("Selecione os produtos"):
     produtos_selecionados = df_editado[df_editado["Selecionado"] == True]["Produto"].tolist()
 
 # Criando DataFrame para armazenar a demanda
-demand = []
+dados_demanda = []
 
 for produto in produtos_selecionados:
     peso = st.number_input(f"Peso para {produto} (kg)", min_value=1, step=1)
     largura = produtos[produto]
-    demand.append([produto, largura, peso])
+    dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
 
-df_demanda = pd.DataFrame(demand, columns=["Produto", "Largura", "Peso"])
+# Garantindo que demand seja um DataFrame
+demand = pd.DataFrame(dados_demanda)
 
 st.write("Demanda:")
 st.dataframe(df_demanda, use_container_width=True)
