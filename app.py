@@ -46,26 +46,32 @@ produtos = {
 larguras_slitters = list(produtos.values())
 
 # Entrada de demandas como seleção múltipla
+# Entrada de demandas com checkbox e campo de peso no mesmo lugar, com rolagem
 with st.expander("Selecione os produtos e defina os pesos"):
-    dados_demanda = []
-    
-    for produto, largura in produtos.items():
-        col1, col2 = st.columns([3, 1])  # Divide espaço entre nome do produto e peso
-        with col1:
-            selecionado = st.checkbox(produto, value=False, key=f"chk_{produto}")
-        with col2:
-            peso = st.number_input(f"Peso ({produto})", min_value=1, step=1, value=1, key=f"peso_{produto}")
+    with st.container():
+        dados_demanda = []
 
-        # Se o checkbox estiver marcado, adiciona à demanda
-        if selecionado and peso > 0:
-            dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
+        # Criar uma área rolável para os produtos
+        produtos_scroll = st.container()
 
+        with produtos_scroll:
+            for produto, largura in produtos.items():
+                col1, col2 = st.columns([3, 1])  # Ajusta o espaço para checkbox e peso
+                with col1:
+                    selecionado = st.checkbox(produto, value=False, key=f"chk_{produto}")
+                with col2:
+                    peso = st.number_input("", min_value=1, step=1, value=0, key=f"peso_{produto}")
 
-# Garantindo que demand seja um DataFrame
+                # Se o checkbox estiver marcado, adiciona à demanda
+                if selecionado and peso > 0:
+                    dados_demanda.append({"Produto": produto, "Largura": largura, "Peso": peso})
+
+# Convertendo para DataFrame
 demand = pd.DataFrame(dados_demanda)
 
-st.write("Demanda:")
-st.dataframe(demand, use_container_width=True)
+# Exibindo a demanda atualizada
+st.write("Demanda Selecionada:")
+st.dataframe(demand, use_container_width=True, height=300)  # Adiciona rolagem na exibição da demanda
 
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
