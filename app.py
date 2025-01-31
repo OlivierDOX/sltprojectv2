@@ -53,13 +53,8 @@ with st.expander("Selecione os produtos e defina os pesos"):
     "Selecionado": [False] * len(produtos),
     "Peso": [None] * len(produtos)  # Define o valor padrão como nulo
     })
-    
+
     # Aplicando formatação para separar milhares com "."
-   df_produtos["Peso"] = df_produtos["Peso"].apply(lambda x: round(x) if pd.notnull(x) else None).astype(float)
-
-pd.options.display.float_format = '{:,.0f}'.format
-
-
 
 
 
@@ -155,7 +150,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 def gerar_tabela_final(resultado, demand, proporcao):
     # Inicializa pesos_totais com todas as larguras e produtos do demand
     pesos_totais = {row["Largura"]: 0 for _, row in demand.iterrows()}
-    
+
     for _, linha in resultado.iterrows():
         combinacao = linha["Plano de Corte"]
         quantidade = linha["Quantidade"]
@@ -170,7 +165,7 @@ def gerar_tabela_final(resultado, demand, proporcao):
             pesos_totais[largura] += quantidade * largura * proporcao
 
     tabela_final = []
-    
+
     # Garante que a tabela final contenha apenas os produtos do demand
     for _, row in demand.iterrows():
         produto = row["Produto"]
@@ -200,7 +195,7 @@ def gerar_tabela_final(resultado, demand, proporcao):
     }
 
     tabela_final.append(totais)
-    
+
     # Criando DataFrame final
     df_final = pd.DataFrame(tabela_final)
 
