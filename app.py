@@ -55,7 +55,9 @@ with st.expander("Selecione os produtos e defina os pesos"):
     })
     
     # Aplicando formatação para separar milhares com "."
-    df_produtos["Peso"] = df_produtos["Peso"].apply(lambda x: round(x) if pd.notnull(x) else None).astype(float)
+   df_produtos["Peso"] = df_produtos["Peso"].apply(lambda x: round(x) if pd.notnull(x) else None).astype(float)
+   pd.options.display.float_format = '{:,.0f}'.format
+
 
 
 
