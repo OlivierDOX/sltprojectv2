@@ -51,11 +51,19 @@ with st.expander("Selecione os produtos"):
     df_editado = st.data_editor(df_produtos, num_rows="fixed", use_container_width=True, hide_index=True)
     produtos_selecionados = df_editado[df_editado["Selecionado"] == True]["Produto"].tolist()
 
-demands = []
+# Criando DataFrame para armazenar a demanda
+dados_demanda = []
+
 for produto in produtos_selecionados:
     peso = st.number_input(f"Peso para {produto} (kg)", min_value=1, step=1)
     largura = produtos[produto]
-    demands.append({"width": largura, "weight": peso})
+    dados_demanda.append([produto, largura, peso])
+
+df_demanda = pd.DataFrame(dados_demanda, columns=["Produto", "Largura", "Peso"])
+
+st.write("Demanda:")
+st.dataframe(df_demanda, use_container_width=True)
+
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
     combinacoes = []
@@ -65,7 +73,7 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
                 combinacoes.append(combinacao)
     return combinacoes
 
-def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demandas):
+def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
     proporcao = peso_bobina / largura_bobina
 
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
@@ -78,9 +86,9 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 
     problema += lpSum(x[i] for i in range(len(combinacoes))), "Minimizar_Bobinas"
 
-    for demanda in demandas:
-        largura = demanda["width"]
-        peso_necessario = demanda["weight"]
+    for _, row in demand.iterrows():
+        largura = row["Largura"]
+        peso_necessario = row["Peso"]
 
         problema += (
             lpSum(
@@ -124,21 +132,25 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 
     return pd.DataFrame(resultado)
 
-def gerar_tabela_final(resultado, demandas, proporcao, produtos):
-    pesos_totais = {demanda["width"]: 0 for demanda in demandas}
+
+def gerar_tabela_final(resultado, demand, proporcao, produtos):
+    pesos_totais = {row["Largura"]: 0 for _, row in demand.iterrows()}
+
     for _, linha in resultado.iterrows():
         combinacao = linha["Plano de Corte"]
         quantidade = linha["Quantidade"]
         for item in combinacao:
             largura = int(str(item).split('|')[0].strip())
             pesos_totais[largura] += quantidade * largura * proporcao
+
     tabela_final = []
-    for demanda in demandas:
-        largura = demanda["width"]
-        peso_planejado = demanda["weight"]
+    for _, row in demand.iterrows():
+        largura = row["Largura"]
+        peso_planejado = row["Peso"]
         peso_total = pesos_totais.get(largura, 0)
         percentual_atendido = (peso_total / peso_planejado * 100) if peso_planejado > 0 else 0
         produto = next((key for key, value in produtos.items() if value == largura), "Produto Desconhecido")
+
         tabela_final.append({
             "Largura (mm)": largura,
             "Produto": produto,
@@ -146,42 +158,60 @@ def gerar_tabela_final(resultado, demandas, proporcao, produtos):
             "Peso Total (kg)": round(peso_total, 0),
             "Atendimento (%)": round(percentual_atendido, 1),
         })
+
+    total_peso_planejado = demand["Peso"].sum()
+    total_peso_atendido = sum(pesos_totais.values())
+
     totais = {
         "Largura (mm)": "Total",
         "Produto": "",
-        "Demanda Planejada (kg)": sum(d["weight"] for d in demandas),
-        "Peso Total (kg)": round(sum(pesos_totais.values()), 0),
-        "Atendimento (%)": round(sum(pesos_totais.values()) / sum(d["weight"] for d in demandas) * 100, 1) if sum(d["weight"] for d in demandas) > 0 else 0,
+        "Demanda Planejada (kg)": total_peso_planejado,
+        "Peso Total (kg)": round(total_peso_atendido, 0),
+        "Atendimento (%)": round((total_peso_atendido / total_peso_planejado) * 100, 1) if total_peso_planejado > 0 else 0,
     }
+
     tabela_final.append(totais)
     df_final = pd.DataFrame(tabela_final)
+
     df_final = df_final.applymap(lambda x: f"{int(x):,}".replace(",", ".") if isinstance(x, (int, float)) and x == round(x, 0) else (f"{x:,}".replace(",", ".") if isinstance(x, (int, float)) else x))
+
     return df_final
+
 
 
 def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
-
 # Botão para calcular
 if st.button("Calcular"):
     melhor_resultado = None
     melhor_largura = None
+    
+    # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
     for largura_bobina in larguras_bobina:
-        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demands)
+        resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
+        
         if resultado is not None:
             if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
                 melhor_resultado = resultado
                 melhor_largura = largura_bobina
+
     if melhor_resultado is not None:
         proporcao = peso_bobina / melhor_largura
-        tabela_final = gerar_tabela_final(melhor_resultado, demands, proporcao, produtos)
+
+        # Gerar a tabela final usando o DataFrame de demandas
+        tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao, produtos)
+        
         st.subheader("Melhor largura de bobina")
         st.write(f"{melhor_largura} mm")
+
         st.subheader("Resultado dos Planos de Corte")
         st.dataframe(melhor_resultado)
+
         st.subheader("Tabela Final")
         st.dataframe(tabela_final)
+
+        # Preparar e oferecer o resultado para download em TXT
         resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
         st.download_button(
             label="Baixar Resultado (TXT)",
