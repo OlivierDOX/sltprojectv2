@@ -19,7 +19,7 @@ except ValueError:
     st.error("Os limites inferior e superior devem ser números válidos em porcentagem.")
     st.stop()
 
-# Largura da bobina fixa
+# Lista de larguras de bobinas possíveis
 larguras_bobina = [1192, 1191, 1190, 1189, 1188]
 peso_bobina = 17715
 
@@ -45,35 +45,28 @@ produtos = {
 
 larguras_slitters = list(produtos.values())
 
-# Entrada de demandas como seleção múltipla
-# Entrada de demandas com barra de rolagem dentro do expander
+# Entrada de demandas
 with st.expander("Selecione os produtos e defina os pesos"):
     df_produtos = pd.DataFrame({
         "Produto": list(produtos.keys()),
         "Selecionado": [False] * len(produtos),
-        "Peso": [0] * len(produtos)  # Agora o nome da coluna é "Peso"
+        "Peso": [0] * len(produtos)
     })
 
-    # Editor de dados com barra de rolagem automática
     df_editado = st.data_editor(
         df_produtos,
-        num_rows="fixed",  # Mantém número fixo de linhas
+        num_rows="fixed",
         use_container_width=True,
         hide_index=True
     )
 
-    # Filtrando apenas os produtos selecionados
     produtos_selecionados = df_editado[df_editado["Selecionado"] == True]
 
-# Convertendo os produtos selecionados para o DataFrame final
-demand = produtos_selecionados[["Produto", "Peso"]].copy()  # Agora acessamos corretamente "Peso"
-demand["Largura"] = demand["Produto"].map(produtos)  # Adiciona largura com base no dicionário original
+demand = produtos_selecionados[["Produto", "Peso"]].copy()
+demand["Largura"] = demand["Produto"].map(produtos)
 
-# Exibir a demanda selecionada
 st.write("Demanda Selecionada:")
 st.dataframe(demand, use_container_width=True)
-
-
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
     combinacoes = []
@@ -85,9 +78,7 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
 
 def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
     proporcao = peso_bobina / largura_bobina
-
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
-
     if not combinacoes:
         return None
 
@@ -101,46 +92,22 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
         peso_necessario = row["Peso"]
 
         problema += (
-            lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
-                for i, combinacao in enumerate(combinacoes)
-            ) >= peso_necessario * limite_inferior,
-            f"Atender_Minima_{largura}",
+            lpSum(x[i] * combinacao.count(largura) * proporcao * largura for i, combinacao in enumerate(combinacoes))
+            >= peso_necessario * limite_inferior
         )
         problema += (
-            lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
-                for i, combinacao in enumerate(combinacoes)
-            ) <= peso_necessario * limite_superior,
-            f"Atender_Maxima_{largura}",
+            lpSum(x[i] * combinacao.count(largura) * proporcao * largura for i, combinacao in enumerate(combinacoes))
+            <= peso_necessario * limite_superior
         )
 
     problema.solve(PULP_CBC_CMD(msg=False))
-
     if problema.status != 1:
         return None
 
-    resultado = []
-    for i, combinacao in enumerate(combinacoes):
-        if x[i].varValue > 0:
-            pesos_por_largura = [largura * proporcao for largura in combinacao]
-            combinacao_com_pesos = [
-                f"{largura} | {round(peso, 0)} kg"
-                for largura, peso in zip(combinacao, pesos_por_largura)
-            ]
-
-            puxada = 2 if any(peso > 5000 for peso in pesos_por_largura) else 1
-
-            resultado.append(
-                {
-                    "Plano de Corte": combinacao_com_pesos,
-                    "Quantidade": int(x[i].varValue),
-                    "Largura Total": sum(combinacao),
-                    "Puxada": puxada,
-                }
-            )
-
-    return pd.DataFrame(resultado)
+    return pd.DataFrame([
+        {"Plano de Corte": combinacao, "Quantidade": int(x[i].varValue), "Largura Total": sum(combinacao)}
+        for i, combinacao in enumerate(combinacoes) if x[i].varValue > 0
+    ])
 
 
 def gerar_tabela_final(resultado, demand, proporcao):
@@ -212,41 +179,16 @@ if st.button("Calcular"):
     if demand.empty:
         st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
     else:
-        melhor_resultado = None
-        melhor_largura = None
-
-        # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
+        resultados = []
         for largura_bobina in larguras_bobina:
             resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
-
             if resultado is not None:
-                if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
-                    melhor_resultado = resultado
-                    melhor_largura = largura_bobina
+                resultados.append((largura_bobina, resultado))
 
-        if melhor_resultado is not None:
-            proporcao = peso_bobina / melhor_largura
-
-            # Gerar a tabela final usando o DataFrame de demandas
-            tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
-
-
-            st.subheader("Melhor largura de bobina")
-            st.write(f"{melhor_largura} mm")
-
+        if resultados:
+            melhor_largura, melhor_resultado = min(resultados, key=lambda x: x[1]["Quantidade"].sum())
+            st.subheader(f"Melhor largura de bobina: {melhor_largura} mm")
             st.subheader("Resultado dos Planos de Corte")
             st.dataframe(melhor_resultado)
-
-            st.subheader("Tabela Final")
-            st.dataframe(tabela_final)
-
-            # Preparar e oferecer o resultado para download em TXT
-            resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
-            st.download_button(
-                label="Baixar Resultado (TXT)",
-                data=resultado_txt.encode("utf-8"),
-                file_name="resultado_corte.txt",
-                mime="text/plain"
-            )
         else:
             st.error("Nenhuma solução encontrada!")
