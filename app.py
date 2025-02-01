@@ -94,64 +94,67 @@ def encontra_combinacoes_possiveis(larguras_slitters, larguras_bobina):
     return todas_combinacoes
 
 
-def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
-    proporcao = peso_bobina / largura_bobina
+def resolver_problema_corte(larguras_slitters, larguras_bobina, peso_bobina, demand):
+    resultado_final = []
+    
+    for largura_bobina in larguras_bobina:  # Agora testamos todas as larguras de bobina
+        proporcao = peso_bobina / largura_bobina
+        combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
 
-    combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
+        if not combinacoes:
+            continue  # Pula para a próxima largura se nenhuma combinação for encontrada
 
-    if not combinacoes:
-        return None
+        problema = LpProblem("Problema_de_Corte", LpMinimize)
+        x = LpVariable.dicts("Plano", range(len(combinacoes)), lowBound=0, cat="Integer")
 
-    problema = LpProblem("Problema_de_Corte", LpMinimize)
-    x = LpVariable.dicts("Plano", range(len(combinacoes)), lowBound=0, cat="Integer")
+        problema += lpSum(x[i] for i in range(len(combinacoes))), "Minimizar_Bobinas"
 
-    problema += lpSum(x[i] for i in range(len(combinacoes))), "Minimizar_Bobinas"
+        for _, row in demand.iterrows():
+            largura = row["Largura"]
+            peso_necessario = row["Peso"]
 
-    for _, row in demand.iterrows():
-        largura = row["Largura"]
-        peso_necessario = row["Peso"]
-
-        problema += (
-            lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
-                for i, combinacao in enumerate(combinacoes)
-            ) >= peso_necessario * limite_inferior,
-            f"Atender_Minima_{largura}",
-        )
-        problema += (
-            lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
-                for i, combinacao in enumerate(combinacoes)
-            ) <= peso_necessario * limite_superior,
-            f"Atender_Maxima_{largura}",
-        )
-
-    problema.solve(PULP_CBC_CMD(msg=False))
-
-    if problema.status != 1:
-        return None
-
-    resultado = []
-    for i, combinacao in enumerate(combinacoes):
-        if x[i].varValue > 0:
-            pesos_por_largura = [largura * proporcao for largura in combinacao]
-            combinacao_com_pesos = [
-                f"{largura} | {round(peso, 0)} kg"
-                for largura, peso in zip(combinacao, pesos_por_largura)
-            ]
-
-            puxada = 2 if any(peso > 5000 for peso in pesos_por_largura) else 1
-
-            resultado.append(
-                {
-                    "Plano de Corte": combinacao_com_pesos,
-                    "Quantidade": int(x[i].varValue),
-                    "Largura Total": sum(combinacao),
-                    "Puxada": puxada,
-                }
+            problema += (
+                lpSum(
+                    x[i] * combinacao.count(largura) * proporcao * largura
+                    for i, combinacao in enumerate(combinacoes)
+                ) >= peso_necessario * limite_inferior,
+                f"Atender_Minima_{largura}",
+            )
+            problema += (
+                lpSum(
+                    x[i] * combinacao.count(largura) * proporcao * largura
+                    for i, combinacao in enumerate(combinacoes)
+                ) <= peso_necessario * limite_superior,
+                f"Atender_Maxima_{largura}",
             )
 
-    return pd.DataFrame(resultado)
+        problema.solve(PULP_CBC_CMD(msg=False))
+
+        if problema.status != 1:
+            continue  # Se não encontrar solução viável, passa para a próxima largura de bobina
+
+        for i, combinacao in enumerate(combinacoes):
+            if x[i].varValue > 0:
+                pesos_por_largura = [largura * proporcao for largura in combinacao]
+                combinacao_com_pesos = [
+                    f"{largura} | {round(peso, 0)} kg"
+                    for largura, peso in zip(combinacao, pesos_por_largura)
+                ]
+
+                puxada = 2 if any(peso > 5000 for peso in pesos_por_largura) else 1
+
+                resultado_final.append(
+                    {
+                        "Largura da Bobina": largura_bobina,  # Agora armazenamos qual bobina foi usada
+                        "Plano de Corte": combinacao_com_pesos,
+                        "Quantidade": int(x[i].varValue),
+                        "Largura Total": sum(combinacao),
+                        "Puxada": puxada,
+                    }
+                )
+
+    return pd.DataFrame(resultado_final)
+
 
 
 def gerar_tabela_final(resultado, demand, proporcao):
