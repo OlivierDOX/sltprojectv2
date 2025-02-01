@@ -101,14 +101,16 @@ def resolver_problema_corte(larguras_slitters, larguras_bobina, peso_bobina, dem
         problema += (
             lpSum(
                 x[i] * combinacao.count(largura) * (peso_bobina / largura_bobina) * largura
-                for i, (largura_bobina, combinacao) in enumerate(sum(todas_combinacoes.values(), []))
+                for i, (largura_bobina, combinacoes) in enumerate(todas_combinacoes.items())
+                for combinacao in combinacoes
             ) >= peso_necessario * limite_inferior,
             f"Atender_Minima_{largura}",
         )
         problema += (
             lpSum(
                 x[i] * combinacao.count(largura) * (peso_bobina / largura_bobina) * largura
-                for i, (largura_bobina, combinacao) in enumerate(sum(todas_combinacoes.values(), []))
+                for i, (largura_bobina, combinacoes) in enumerate(todas_combinacoes.items())
+                for combinacao in combinacoes
             ) <= peso_necessario * limite_superior,
             f"Atender_Maxima_{largura}",
         )
