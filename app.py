@@ -20,7 +20,7 @@ except ValueError:
     st.stop()
 
 # Largura da bobina fixa
-larguras_bobina = [1192, 1191, 1190, 1189, 1188]
+larguras_bobina = [1191, 1190, 1189, 1188]
 peso_bobina = 17715
 
 # Definições dos produtos
@@ -72,6 +72,8 @@ demand["Largura"] = demand["Produto"].map(produtos)  # Adiciona largura com base
 # Exibir a demanda selecionada
 st.write("Demanda Selecionada:")
 st.dataframe(demand, use_container_width=True)
+
+
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
     combinacoes = []
@@ -140,6 +142,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 
     return pd.DataFrame(resultado)
 
+
 def gerar_tabela_final(resultado, demand, proporcao):
     # Inicializa pesos_totais com todas as larguras e produtos do demand
     pesos_totais = {row["Largura"]: 0 for _, row in demand.iterrows()}
@@ -197,8 +200,12 @@ def gerar_tabela_final(resultado, demand, proporcao):
 
     return df_final
 
+
+
+
 def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
+
 
 # Botão para calcular
 if st.button("Calcular"):
@@ -222,6 +229,7 @@ if st.button("Calcular"):
 
             # Gerar a tabela final usando o DataFrame de demandas
             tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
+
 
             st.subheader("Melhor largura de bobina")
             st.write(f"{melhor_largura} mm")
