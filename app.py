@@ -19,7 +19,7 @@ except ValueError:
     st.error("Os limites inferior e superior devem ser números válidos em porcentagem.")
     st.stop()
 
-# Lista de larguras de bobinas possíveis
+# Largura da bobina fixa
 larguras_bobina = [1192, 1191, 1190, 1189, 1188]
 peso_bobina = 17715
 
@@ -45,26 +45,31 @@ produtos = {
 
 larguras_slitters = list(produtos.values())
 
-# Entrada de demandas
+# Entrada de demandas como seleção múltipla
+# Entrada de demandas com barra de rolagem dentro do expander
 with st.expander("Selecione os produtos e defina os pesos"):
     df_produtos = pd.DataFrame({
         "Produto": list(produtos.keys()),
         "Selecionado": [False] * len(produtos),
-        "Peso": [0] * len(produtos)
+        "Peso": [0] * len(produtos)  # Agora o nome da coluna é "Peso"
     })
 
+    # Editor de dados com barra de rolagem automática
     df_editado = st.data_editor(
         df_produtos,
-        num_rows="fixed",
+        num_rows="fixed",  # Mantém número fixo de linhas
         use_container_width=True,
         hide_index=True
     )
 
+    # Filtrando apenas os produtos selecionados
     produtos_selecionados = df_editado[df_editado["Selecionado"] == True]
 
-demand = produtos_selecionados[["Produto", "Peso"]].copy()
-demand["Largura"] = demand["Produto"].map(produtos)
+# Convertendo os produtos selecionados para o DataFrame final
+demand = produtos_selecionados[["Produto", "Peso"]].copy()  # Agora acessamos corretamente "Peso"
+demand["Largura"] = demand["Produto"].map(produtos)  # Adiciona largura com base no dicionário original
 
+# Exibir a demanda selecionada
 st.write("Demanda Selecionada:")
 st.dataframe(demand, use_container_width=True)
 
@@ -78,7 +83,9 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
 
 def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
     proporcao = peso_bobina / largura_bobina
+
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
+
     if not combinacoes:
         return None
 
@@ -92,23 +99,46 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
         peso_necessario = row["Peso"]
 
         problema += (
-            lpSum(x[i] * combinacao.count(largura) * proporcao * largura for i, combinacao in enumerate(combinacoes))
-            >= peso_necessario * limite_inferior
+            lpSum(
+                x[i] * combinacao.count(largura) * proporcao * largura
+                for i, combinacao in enumerate(combinacoes)
+            ) >= peso_necessario * limite_inferior,
+            f"Atender_Minima_{largura}",
         )
         problema += (
-            lpSum(x[i] * combinacao.count(largura) * proporcao * largura for i, combinacao in enumerate(combinacoes))
-            <= peso_necessario * limite_superior
+            lpSum(
+                x[i] * combinacao.count(largura) * proporcao * largura
+                for i, combinacao in enumerate(combinacoes)
+            ) <= peso_necessario * limite_superior,
+            f"Atender_Maxima_{largura}",
         )
 
     problema.solve(PULP_CBC_CMD(msg=False))
+
     if problema.status != 1:
         return None
 
-    return pd.DataFrame([
-        {"Plano de Corte": combinacao, "Quantidade": int(x[i].varValue), "Largura Total": sum(combinacao)}
-        for i, combinacao in enumerate(combinacoes) if x[i].varValue > 0
-    ])
+    resultado = []
+    for i, combinacao in enumerate(combinacoes):
+        if x[i].varValue > 0:
+            pesos_por_largura = [largura * proporcao for largura in combinacao]
+            combinacao_com_pesos = [
+                f"{largura} | {round(peso, 0)} kg"
+                for largura, peso in zip(combinacao, pesos_por_largura)
+            ]
 
+            puxada = 2 if any(peso > 5000 for peso in pesos_por_largura) else 1
+
+            resultado.append(
+                {
+                    "Plano de Corte": combinacao_com_pesos,
+                    "Quantidade": int(x[i].varValue),
+                    "Largura Total": sum(combinacao),
+                    "Puxada": puxada,
+                }
+            )
+
+    return pd.DataFrame(resultado)
 
 def gerar_tabela_final(resultado, demand, proporcao):
     # Inicializa pesos_totais com todas as larguras e produtos do demand
@@ -167,14 +197,9 @@ def gerar_tabela_final(resultado, demand, proporcao):
 
     return df_final
 
-
-
-
 def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
-
-# Botão para calcular
 # Botão para calcular
 if st.button("Calcular"):
     if demand.empty:
@@ -198,7 +223,6 @@ if st.button("Calcular"):
             # Gerar a tabela final usando o DataFrame de demandas
             tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
 
-
             st.subheader("Melhor largura de bobina")
             st.write(f"{melhor_largura} mm")
 
@@ -218,4 +242,3 @@ if st.button("Calcular"):
             )
         else:
             st.error("Nenhuma solução encontrada!")
-
