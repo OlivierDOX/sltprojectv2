@@ -96,7 +96,11 @@ def encontra_combinacoes_possiveis(larguras_slitters, larguras_bobina):
 
 def resolver_problema_corte(larguras_slitters, larguras_bobina, peso_bobina, demand):
     resultado_final = []
-    
+
+    # Garante que larguras_bobina seja uma lista
+    if isinstance(larguras_bobina, int):
+        larguras_bobina = [larguras_bobina]
+
     for largura_bobina in larguras_bobina:  # Agora testamos todas as larguras de bobina
         proporcao = peso_bobina / largura_bobina
         combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
@@ -154,6 +158,7 @@ def resolver_problema_corte(larguras_slitters, larguras_bobina, peso_bobina, dem
                 )
 
     return pd.DataFrame(resultado_final)
+
 
 
 
