@@ -175,20 +175,47 @@ def exibir_dataframe(df):
 
 
 # Botão para calcular
+# Botão para calcular
 if st.button("Calcular"):
     if demand.empty:
         st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
     else:
-        resultados = []
+        melhor_resultado = None
+        melhor_largura = None
+
+        # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
         for largura_bobina in larguras_bobina:
             resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
-            if resultado is not None:
-                resultados.append((largura_bobina, resultado))
 
-        if resultados:
-            melhor_largura, melhor_resultado = min(resultados, key=lambda x: x[1]["Quantidade"].sum())
-            st.subheader(f"Melhor largura de bobina: {melhor_largura} mm")
+            if resultado is not None:
+                if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
+                    melhor_resultado = resultado
+                    melhor_largura = largura_bobina
+
+        if melhor_resultado is not None:
+            proporcao = peso_bobina / melhor_largura
+
+            # Gerar a tabela final usando o DataFrame de demandas
+            tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
+
+
+            st.subheader("Melhor largura de bobina")
+            st.write(f"{melhor_largura} mm")
+
             st.subheader("Resultado dos Planos de Corte")
             st.dataframe(melhor_resultado)
+
+            st.subheader("Tabela Final")
+            st.dataframe(tabela_final)
+
+            # Preparar e oferecer o resultado para download em TXT
+            resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
+            st.download_button(
+                label="Baixar Resultado (TXT)",
+                data=resultado_txt.encode("utf-8"),
+                file_name="resultado_corte.txt",
+                mime="text/plain"
+            )
         else:
             st.error("Nenhuma solução encontrada!")
+
