@@ -78,6 +78,10 @@ st.dataframe(demand, use_container_width=True)
 def encontra_combinacoes_possiveis(larguras_slitters, larguras_bobina):
     todas_combinacoes = []  # Lista para armazenar todas as combinações
     
+    # Garante que larguras_bobina seja uma lista
+    if isinstance(larguras_bobina, int):
+        larguras_bobina = [larguras_bobina]
+
     for largura_bobina in larguras_bobina:
         combinacoes = []
         for n in range(1, largura_bobina // min(larguras_slitters) + 1):
@@ -88,6 +92,7 @@ def encontra_combinacoes_possiveis(larguras_slitters, larguras_bobina):
         todas_combinacoes.extend(combinacoes)  # Adiciona todas as combinações à lista
     
     return todas_combinacoes
+
 
 def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
     proporcao = peso_bobina / largura_bobina
