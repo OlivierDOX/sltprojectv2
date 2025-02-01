@@ -83,6 +83,7 @@ def encontra_combinacoes_possiveis(larguras_slitters, larguras_bobina):
 
 def resolver_problema_corte(larguras_slitters, larguras_bobina, peso_bobina, demand):
     resultado_final = []
+    larguras_bobina = [larguras_bobina] if isinstance(larguras_bobina, int) else larguras_bobina
     todas_combinacoes = encontra_combinacoes_possiveis(larguras_slitters, larguras_bobina)
     
     if not todas_combinacoes:
@@ -116,27 +117,6 @@ def resolver_problema_corte(larguras_slitters, larguras_bobina, peso_bobina, dem
     
     if problema.status != 1:
         return None
-    
-    for i, (largura_bobina, combinacao) in enumerate(sum(todas_combinacoes.values(), [])):
-        if x[i].varValue > 0:
-            proporcao = peso_bobina / largura_bobina
-            pesos_por_largura = [largura * proporcao for largura in combinacao]
-            combinacao_com_pesos = [
-                f"{largura} | {round(peso, 0)} kg"
-                for largura, peso in zip(combinacao, pesos_por_largura)
-            ]
-            
-            puxada = 2 if any(peso > 5000 for peso in pesos_por_largura) else 1
-            
-            resultado_final.append(
-                {
-                    "Largura da Bobina": largura_bobina,
-                    "Plano de Corte": combinacao_com_pesos,
-                    "Quantidade": int(x[i].varValue),
-                    "Largura Total": sum(combinacao),
-                    "Puxada": puxada,
-                }
-            )
     
     return pd.DataFrame(resultado_final)
 
