@@ -21,7 +21,7 @@ except ValueError:
 
 # Largura da bobina fixa
 larguras_bobina = [1191, 1190, 1189, 1188]
-peso_bobina = [20000,30000,25000,25000]
+peso_bobina = 17715
 
 # Definições dos produtos
 produtos = {
@@ -83,13 +83,8 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
                 combinacoes.append(combinacao)
     return combinacoes
 
-def resolver_problema_corte(larguras_slitters, largura_bobina, pesos_bobinas, demand):
-    # Verifica se a lista de pesos de bobinas está vazia
-    if not pesos_bobinas:
-        return None
-    
-    # Calcular as proporções para cada bobina
-    proporcoes = [peso / largura_bobina for peso in pesos_bobinas]
+def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
+    proporcao = peso_bobina / largura_bobina
 
     # Encontrar combinações possíveis
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
@@ -117,14 +112,14 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, pesos_bobinas, de
 
         problema += (
             lpSum(
-                x[i] * combinacao.count(largura) * proporcoes[min(i, len(proporcoes) - 1)] * largura
+                x[i] * combinacao.count(largura) * proporcao * largura
                 for i, combinacao in enumerate(combinacoes_filtradas)
             ) >= peso_necessario * limite_inferior,
             f"Atender_Minima_{largura}",
         )
         problema += (
             lpSum(
-                x[i] * combinacao.count(largura) * proporcoes[min(i, len(proporcoes) - 1)] * largura
+                x[i] * combinacao.count(largura) * proporcao * largura
                 for i, combinacao in enumerate(combinacoes_filtradas)
             ) <= peso_necessario * limite_superior,
             f"Atender_Maxima_{largura}",
@@ -138,9 +133,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, pesos_bobinas, de
     resultado = []
     for i, combinacao in enumerate(combinacoes_filtradas):
         if x[i].varValue > 0:
-            pesos_por_largura = [
-                largura * proporcoes[min(i, len(proporcoes) - 1)] for largura in combinacao
-            ]
+            pesos_por_largura = [largura * proporcao for largura in combinacao]
             combinacao_com_pesos = [
                 f"{largura} | {round(peso, 0)} kg"
                 for largura, peso in zip(combinacao, pesos_por_largura)
@@ -158,7 +151,6 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, pesos_bobinas, de
             )
 
     return pd.DataFrame(resultado)
-
 
 
 
@@ -227,36 +219,31 @@ def exibir_dataframe(df):
 
 
 # Botão para calcular
-# Botão para calcular
 if st.button("Calcular"):
     if demand.empty:
         st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
     else:
         melhor_resultado = None
         melhor_largura = None
-        melhor_peso = None  # Armazena o peso da melhor bobina
 
-        # Itera pelas larguras da bobina fixa e pelos pesos das bobinas disponíveis
-        for peso in peso_bobina:  # Itera sobre a lista de pesos de bobinas
-            resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso, demand)
+        # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
+        for largura_bobina in larguras_bobina:
+            resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
 
             if resultado is not None:
                 if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
                     melhor_resultado = resultado
                     melhor_largura = largura_bobina
-                    melhor_peso = peso  # Guarda o peso da bobina escolhida
 
         if melhor_resultado is not None:
-            proporcao = melhor_peso / melhor_largura  # Usa o peso correto da melhor bobina
+            proporcao = peso_bobina / melhor_largura
 
             # Gerar a tabela final usando o DataFrame de demandas
             tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
 
+
             st.subheader("Melhor largura de bobina")
             st.write(f"{melhor_largura} mm")
-
-            st.subheader("Melhor peso de bobina")
-            st.write(f"{melhor_peso} kg")
 
             st.subheader("Resultado dos Planos de Corte")
             st.dataframe(melhor_resultado)
@@ -274,4 +261,3 @@ if st.button("Calcular"):
             )
         else:
             st.error("Nenhuma solução encontrada!")
-
