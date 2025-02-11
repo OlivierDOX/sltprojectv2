@@ -227,31 +227,36 @@ def exibir_dataframe(df):
 
 
 # Botão para calcular
+# Botão para calcular
 if st.button("Calcular"):
     if demand.empty:
         st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
     else:
         melhor_resultado = None
         melhor_largura = None
+        melhor_peso = None  # Armazena o peso da melhor bobina
 
-        # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
-        for largura_bobina in larguras_bobina:
+        # Itera pelas larguras da bobina fixa e pelos pesos das bobinas disponíveis
+        for peso_bobina in pesos_bobinas:  # Itera sobre a lista de pesos de bobinas
             resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
 
             if resultado is not None:
                 if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
                     melhor_resultado = resultado
                     melhor_largura = largura_bobina
+                    melhor_peso = peso_bobina  # Guarda o peso da bobina escolhida
 
         if melhor_resultado is not None:
-            proporcao = peso_bobina / melhor_largura
+            proporcao = melhor_peso / melhor_largura  # Usa o peso correto da melhor bobina
 
             # Gerar a tabela final usando o DataFrame de demandas
             tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
 
-
             st.subheader("Melhor largura de bobina")
             st.write(f"{melhor_largura} mm")
+
+            st.subheader("Melhor peso de bobina")
+            st.write(f"{melhor_peso} kg")
 
             st.subheader("Resultado dos Planos de Corte")
             st.dataframe(melhor_resultado)
@@ -269,3 +274,4 @@ if st.button("Calcular"):
             )
         else:
             st.error("Nenhuma solução encontrada!")
+
