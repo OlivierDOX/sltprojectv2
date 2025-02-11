@@ -237,14 +237,14 @@ if st.button("Calcular"):
         melhor_peso = None  # Armazena o peso da melhor bobina
 
         # Itera pelas larguras da bobina fixa e pelos pesos das bobinas disponíveis
-        for peso_bobina in pesos_bobinas:  # Itera sobre a lista de pesos de bobinas
-            resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
+        for peso in peso_bobina:  # Itera sobre a lista de pesos de bobinas
+            resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso, demand)
 
             if resultado is not None:
                 if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
                     melhor_resultado = resultado
                     melhor_largura = largura_bobina
-                    melhor_peso = peso_bobina  # Guarda o peso da bobina escolhida
+                    melhor_peso = peso  # Guarda o peso da bobina escolhida
 
         if melhor_resultado is not None:
             proporcao = melhor_peso / melhor_largura  # Usa o peso correto da melhor bobina
