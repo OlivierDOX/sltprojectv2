@@ -21,7 +21,7 @@ except ValueError:
 
 # Largura da bobina fixa
 larguras_bobina = [1191, 1190, 1189, 1188]
-peso_bobina = 17715
+peso_bobina = [20000,30000,25000,25000]
 
 # Definições dos produtos
 produtos = {
@@ -83,8 +83,13 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
                 combinacoes.append(combinacao)
     return combinacoes
 
-def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
-    proporcao = peso_bobina / largura_bobina
+def resolver_problema_corte(larguras_slitters, largura_bobina, pesos_bobinas, demand):
+    # Verifica se a lista de pesos de bobinas está vazia
+    if not pesos_bobinas:
+        return None
+    
+    # Calcular as proporções para cada bobina
+    proporcoes = [peso / largura_bobina for peso in pesos_bobinas]
 
     # Encontrar combinações possíveis
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
@@ -112,14 +117,14 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 
         problema += (
             lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
+                x[i] * combinacao.count(largura) * proporcoes[min(i, len(proporcoes) - 1)] * largura
                 for i, combinacao in enumerate(combinacoes_filtradas)
             ) >= peso_necessario * limite_inferior,
             f"Atender_Minima_{largura}",
         )
         problema += (
             lpSum(
-                x[i] * combinacao.count(largura) * proporcao * largura
+                x[i] * combinacao.count(largura) * proporcoes[min(i, len(proporcoes) - 1)] * largura
                 for i, combinacao in enumerate(combinacoes_filtradas)
             ) <= peso_necessario * limite_superior,
             f"Atender_Maxima_{largura}",
@@ -133,7 +138,9 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
     resultado = []
     for i, combinacao in enumerate(combinacoes_filtradas):
         if x[i].varValue > 0:
-            pesos_por_largura = [largura * proporcao for largura in combinacao]
+            pesos_por_largura = [
+                largura * proporcoes[min(i, len(proporcoes) - 1)] for largura in combinacao
+            ]
             combinacao_com_pesos = [
                 f"{largura} | {round(peso, 0)} kg"
                 for largura, peso in zip(combinacao, pesos_por_largura)
@@ -151,6 +158,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
             )
 
     return pd.DataFrame(resultado)
+
 
 
 
