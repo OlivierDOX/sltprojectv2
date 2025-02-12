@@ -223,6 +223,19 @@ def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
 
+lotes_pesos = {
+    "LOTE1": 23.62,
+    "LOTE2": 23.59,
+    "LOTE3": 23.56,
+    "LOTE4": 23.53,
+    "LOTE5": 23.51,
+    "LOTE6": 23.46,
+    "LOTE7": 23.43,
+    "LOTE8": 23.42,
+    "LOTE9": 23.42,
+    "LOTE10": 23.41
+}
+
 def transformar_plano_de_corte(planos_de_corte):
     processed_data = []
     for index, plano in enumerate(planos_de_corte, start=1):
@@ -285,25 +298,43 @@ if st.button("Calcular"):
             df_resultado = transformar_plano_de_corte(planos_de_corte)
             df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
 
+            # Criando a aba "Planejamento Final" com os dados de "Transformação Feita"
+            df_planejamento_final = df_resultado.copy()
+            df_planejamento_final["Numero do Lote"] = list(lotes_pesos.keys())[:len(df_planejamento_final)]
+            df_planejamento_final["Peso do Lote"] = df_planejamento_final["Numero do Lote"].map(lotes_pesos)
+
+            # Expandindo as linhas com base em "Quantidade" e "Puxada"
+            df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Quantidade"].fillna(1).astype(int))]
+            df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Puxada"].fillna(1).astype(int))]
+
+            # Atualizando valores das colunas de peso
+            for col in df_planejamento_final.columns:
+                if "Peso" in col:
+                    largura_col = col.replace("Peso", "Largura")
+                    df_planejamento_final[col] = (df_planejamento_final[largura_col] / 1200) * (df_planejamento_final["Peso do Lote"]) / df_planejamento_final["Puxada"]
+
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
                 df_resultado.to_excel(writer, sheet_name="Transformação Feita", index=False)
                 tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
+                df_planejamento_final.to_excel(writer, sheet_name="Planejamento Final", index=False)
             output.seek(0)
 
             resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
-            st.download_button(
-                label="Baixar Resultado (TXT)",
-                data=resultado_txt.encode("utf-8"),
-                file_name="resultado_corte.txt",
-                mime="text/plain"
-            )
-
+            
             st.download_button(
                 label="Baixar Resultado (Excel)",
                 data=output,
                 file_name="resultado_corte_transformado.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+
+            st.download_button(
+                label="Baixar Resultado (TXT)",
+                data=resultado_txt.encode("utf-8"),
+                file_name="resultado_corte.txt",
+                mime="text/plain"
             )
         else:
             st.error("Nenhuma solução encontrada!")
