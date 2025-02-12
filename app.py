@@ -327,18 +327,15 @@ if st.session_state.calculos_feitos:
         df_planejamento_final = df_resultado.copy()
         
         # Passo 1: Duplicação/triplicação das linhas com base na coluna "Quantidade"
-        df_planejamento_final = df_planejamento_final.loc[
-            df_planejamento_final.index.repeat(df_planejamento_final["Quantidade"].fillna(1).astype(int))
-        ].reset_index(drop=True)
+        # 1 - Duplicação baseada em "Quantidade"
+        df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Quantidade"].fillna(1).astype(int))]
         
-        # Passo 2: Adicionar "Numero do Lote" e "Peso do Lote"
+        # 2 - Adicionar colunas "Numero do Lote" e "Peso do Lote"
         df_planejamento_final["Numero do Lote"] = list(lotes_pesos.keys())[:len(df_planejamento_final)]
         df_planejamento_final["Peso do Lote"] = df_planejamento_final["Numero do Lote"].map(lotes_pesos)
         
-        # Passo 3: Duplicação/triplicação das linhas com base na coluna "Puxada"
-        df_planejamento_final = df_planejamento_final.loc[
-            df_planejamento_final.index.repeat(df_planejamento_final["Puxada"].fillna(1).astype(int))
-        ].reset_index(drop=True)
+        # 3 - Segunda duplicação baseada em "Puxada"
+        df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Puxada"].fillna(1).astype(int))]
 
         for col in df_planejamento_final.columns:
             if "Peso" in col:
