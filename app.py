@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import io
 from itertools import combinations_with_replacement
 from pulp import LpProblem, LpVariable, LpMinimize, lpSum, PULP_CBC_CMD
 
