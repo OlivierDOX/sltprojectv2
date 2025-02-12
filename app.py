@@ -360,8 +360,8 @@ if st.session_state.calculos_feitos:
         
         # 3 - Percorrer o dataframe e concatenar as colunas conforme a lógica
         tipo_corte = "Plano de corte"
-        for _, row in df_planejamento_final.iterrows():
-            linha_texto = f"{tipo_corte} {row['Plano de Corte']}: Lote - {row['Numero do Lote']} | Quantidade de puxadas = {row['Puxada']}"
+        for index, row in df_planejamento_final.iterrows():
+            linha_texto = f"{tipo_corte} {index + 1}: Lote - {row['Numero do Lote']} | Quantidade de puxadas = {row['Puxada']}"
             
             colunas_largura_peso = [col for col in df_planejamento_final.columns if "Largura" in col or "Peso" in col]
             colunas_largura_peso.sort()  # Ordenar para garantir a sequência correta
@@ -379,7 +379,6 @@ if st.session_state.calculos_feitos:
         
         # 5 - Adicionar os resultados da tabela final
         resultado_txt += "\n\n" + tabela_final.to_string(index=False)
-        resultado_txt += "\n\n" + melhor_resultado.to_string(index=False)
         
         # 6 - Escrever no arquivo de saída
         with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
