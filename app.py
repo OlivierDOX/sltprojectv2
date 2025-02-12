@@ -219,59 +219,65 @@ def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
 
+def transformar_plano_de_corte(planos_de_corte):
+    processed_data = []
+    for index, plano in enumerate(planos_de_corte, start=1):
+        row = [index]  # Iniciando com o identificador do plano de corte
+        for item in plano:
+            item = item.strip("[]")  # Removendo colchetes extras se houver
+            largura, peso = item.split(" | ")
+            peso = peso.replace(" kg", "")  # Removendo unidade de peso
+            row.extend([int(largura), int(float(peso))])  # Convertendo para inteiros
+        processed_data.append(row)
+
+    # Determinando o número máximo de colunas
+    max_columns = max(len(row) for row in processed_data)
+
+    # Padronizando o tamanho das linhas para que todas tenham o mesmo número de colunas
+    for row in processed_data:
+        while len(row) < max_columns:
+            row.append(None)  # Preenchendo com None
+
+    # Criando os nomes das colunas dinamicamente
+    column_names = ["Plano de Corte"]
+    for i in range(1, (max_columns - 1) // 2 + 1):
+        column_names.extend([f"Largura {i}", f"Peso {i}"])
+
+    # Criando o DataFrame final
+    df_final = pd.DataFrame(processed_data, columns=column_names)
+    return df_final
+
+# Verificar se o botão foi pressionado
 if st.button("Calcular"):
-    if demand.empty:
-        st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
+    melhor_resultado = gerar_melhor_resultado()  # Simulação da geração do resultado
+    if melhor_resultado is not None:
+        tabela_final = gerar_tabela_final(melhor_resultado)  # Simulação da geração da tabela final
+        
+        # Extraindo a coluna "Plano de Corte" e convertendo corretamente
+        planos_de_corte = melhor_resultado["Plano de Corte"].dropna().apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).tolist()
+        
+        # Extraindo as colunas adicionais
+        colunas_adicionais = melhor_resultado[["Quantidade", "Largura Total", "Puxada"]]
+
+        # Transformando os dados
+        df_resultado = transformar_plano_de_corte(planos_de_corte)
+
+        # Adicionando as colunas extras ao DataFrame transformado
+        df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
+
+        # Criar um arquivo Excel para download
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df_resultado.to_excel(writer, sheet_name="Transformação Feita", index=False)
+            tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
+        output.seek(0)
+
+        # Oferecer o arquivo Excel para download
+        st.download_button(
+            label="Baixar Resultado (Excel)",
+            data=output,
+            file_name="resultado_corte_transformado.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
     else:
-        melhor_resultado = None
-        melhor_largura = None
-
-        # Itera pelas larguras da bobina fixa e encontra o melhor resultado possível
-        for largura_bobina in larguras_bobina:
-            resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
-
-            if resultado is not None:
-                if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
-                    melhor_resultado = resultado
-                    melhor_largura = largura_bobina
-
-        if melhor_resultado is not None:
-            proporcao = peso_bobina / melhor_largura
-
-            # Gerar a tabela final usando o DataFrame de demandas
-            tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
-
-            st.subheader("Melhor largura de bobina")
-            st.write(f"{melhor_largura} mm")
-
-            st.subheader("Resultado dos Planos de Corte")
-            st.dataframe(melhor_resultado)
-
-            st.subheader("Tabela Final")
-            st.dataframe(tabela_final)
-
-            # Preparar e oferecer o resultado para download em TXT
-            resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
-            st.download_button(
-                label="Baixar Resultado (TXT)",
-                data=resultado_txt.encode("utf-8"),
-                file_name="resultado_corte.txt",
-                mime="text/plain"
-            )
-
-            # Criar um arquivo Excel para download
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                melhor_resultado.to_excel(writer, sheet_name="Melhor Resultado", index=False)
-                tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
-            output.seek(0)
-
-            # Oferecer o arquivo Excel para download
-            st.download_button(
-                label="Baixar Resultado (Excel)",
-                data=output,
-                file_name="resultado_corte.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-        else:
-            st.error("Nenhuma solução encontrada!")
+        st.error("Nenhuma solução encontrada!")
