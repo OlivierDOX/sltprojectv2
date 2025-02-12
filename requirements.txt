@@ -1,3 +1,4 @@
 pandas
 pulp
 streamlit
+openpyxl
