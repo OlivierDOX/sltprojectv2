@@ -13,6 +13,12 @@ st.title("Cálculo de Planos de Corte de Bobinas")
 limite_inferior = st.text_input("Limite Inferior (%)", "90")
 limite_superior = st.text_input("Limite Superior (%)", "130")
 
+# Largura do Slitter
+larguras_bobina = st.number_input("Largura utilizada no Slitter", min_value=1, value=1196, step=1)
+
+# Peso da bobina 
+peso_bobina = st.number_input("Peso da Bobina", min_value=1, value=23500, step=1)
+
 try:
     limite_inferior = float(limite_inferior) / 100
     limite_superior = float(limite_superior) / 100
@@ -20,9 +26,7 @@ except ValueError:
     st.error("Os limites inferior e superior devem ser números válidos em porcentagem.")
     st.stop()
 
-# Largura da bobina fixa
-larguras_bobina = [1196]
-peso_bobina = 23500
+
 
 # Definições dos produtos
 produtos = {
@@ -52,7 +56,7 @@ with st.expander("Selecione os produtos e defina os pesos"):
     df_produtos = pd.DataFrame({
         "Produto": list(produtos.keys()),
         "Selecionado": [False] * len(produtos),
-        "Peso": [0] * len(produtos)  # Agora o nome da coluna é "Peso"
+        "Peso (kg)": [0] * len(produtos)  # Agora o nome da coluna é "Peso"
     })
 
     # Editor de dados com barra de rolagem automática
