@@ -247,37 +247,51 @@ def transformar_plano_de_corte(planos_de_corte):
     df_final = pd.DataFrame(processed_data, columns=column_names)
     return df_final
 
-# Verificar se o botão foi pressionado
 if st.button("Calcular"):
-    melhor_resultado = gerar_melhor_resultado()  # Simulação da geração do resultado
-    if melhor_resultado is not None:
-        tabela_final = gerar_tabela_final(melhor_resultado)  # Simulação da geração da tabela final
-        
-        # Extraindo a coluna "Plano de Corte" e convertendo corretamente
-        planos_de_corte = melhor_resultado["Plano de Corte"].dropna().apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).tolist()
-        
-        # Extraindo as colunas adicionais
-        colunas_adicionais = melhor_resultado[["Quantidade", "Largura Total", "Puxada"]]
-
-        # Transformando os dados
-        df_resultado = transformar_plano_de_corte(planos_de_corte)
-
-        # Adicionando as colunas extras ao DataFrame transformado
-        df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
-
-        # Criar um arquivo Excel para download
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df_resultado.to_excel(writer, sheet_name="Transformação Feita", index=False)
-            tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
-        output.seek(0)
-
-        # Oferecer o arquivo Excel para download
-        st.download_button(
-            label="Baixar Resultado (Excel)",
-            data=output,
-            file_name="resultado_corte_transformado.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    if demand.empty:
+        st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
     else:
-        st.error("Nenhuma solução encontrada!")
+        melhor_resultado = None
+        melhor_largura = None
+
+        for largura_bobina in larguras_bobina:
+            resultado = resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand)
+
+            if resultado is not None:
+                if melhor_resultado is None or resultado["Quantidade"].sum() < melhor_resultado["Quantidade"].sum():
+                    melhor_resultado = resultado
+                    melhor_largura = largura_bobina
+
+        if melhor_resultado is not None:
+            proporcao = peso_bobina / melhor_largura
+            tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
+
+            st.subheader("Melhor largura de bobina")
+            st.write(f"{melhor_largura} mm")
+
+            st.subheader("Resultado dos Planos de Corte")
+            st.dataframe(melhor_resultado)
+
+            st.subheader("Tabela Final")
+            st.dataframe(tabela_final)
+
+            planos_de_corte = melhor_resultado["Plano de Corte"].dropna().apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).tolist()
+            colunas_adicionais = melhor_resultado[["Quantidade", "Largura Total", "Puxada"]]
+
+            df_resultado = transformar_plano_de_corte(planos_de_corte)
+            df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
+
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine="openpyxl") as writer:
+                df_resultado.to_excel(writer, sheet_name="Transformação Feita", index=False)
+                tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
+            output.seek(0)
+
+            st.download_button(
+                label="Baixar Resultado (Excel)",
+                data=output,
+                file_name="resultado_corte_transformado.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        else:
+            st.error("Nenhuma solução encontrada!")
