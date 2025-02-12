@@ -354,6 +354,4 @@ if calculos_feitos:
             mime="text/plain"
         )
 
-        else:
-            st.error("Nenhuma solução encontrada!")
-
+  
