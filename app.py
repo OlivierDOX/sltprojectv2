@@ -402,6 +402,13 @@ if st.session_state.calculos_feitos:
             mime="text/plain"
         )
 
+        st.download_button(
+                    label="Baixar Resultado (Excel)",
+                    data=output,
+                    file_name="resultado_corte_transformado.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
 
 
   
