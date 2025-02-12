@@ -21,7 +21,7 @@ except ValueError:
     st.stop()
 
 # Largura da bobina fixa
-larguras_bobina = [1192]
+larguras_bobina = [1196]
 peso_bobina = 17715
 
 # Definições dos produtos
