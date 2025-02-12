@@ -325,10 +325,11 @@ if st.session_state.calculos_feitos:
         df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
 
         df_planejamento_final = df_resultado.copy()
-        df_planejamento_final["Numero do Lote"] = list(lotes_pesos.keys())[:len(df_planejamento_final)]
-        df_planejamento_final["Peso do Lote"] = df_planejamento_final["Numero do Lote"].map(lotes_pesos)
+        
 
         df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Quantidade"].fillna(1).astype(int))]
+        df_planejamento_final["Numero do Lote"] = list(lotes_pesos.keys())[:len(df_planejamento_final)]
+        df_planejamento_final["Peso do Lote"] = df_planejamento_final["Numero do Lote"].map(lotes_pesos)
         df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Puxada"].fillna(1).astype(int))]
 
         for col in df_planejamento_final.columns:
