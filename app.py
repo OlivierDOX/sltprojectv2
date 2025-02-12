@@ -237,19 +237,6 @@ def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
 
-lotes_pesos = {
-    "LOTE1": 23.62,
-    "LOTE2": 23.59,
-    "LOTE3": 23.56,
-    "LOTE4": 23.53,
-    "LOTE5": 23.51,
-    "LOTE6": 23.46,
-    "LOTE7": 23.43,
-    "LOTE8": 23.42,
-    "LOTE9": 23.42,
-    "LOTE10": 23.41
-}
-
 def transformar_plano_de_corte(planos_de_corte):
     processed_data = []
     for index, plano in enumerate(planos_de_corte, start=1):
@@ -287,6 +274,9 @@ if "melhor_resultado" not in st.session_state:
 if "melhor_largura" not in st.session_state:
     st.session_state.melhor_largura = None
 
+if "tabela_final" not in st.session_state:
+    st.session_state.tabela_final = None
+
 if st.button("Calcular"):
     if demand.empty:
         st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
@@ -308,6 +298,7 @@ if st.button("Calcular"):
 
             st.session_state.melhor_resultado = melhor_resultado
             st.session_state.melhor_largura = melhor_largura
+            st.session_state.tabela_final = tabela_final
             st.session_state.calculos_feitos = True
 
             st.subheader("Melhor largura de bobina")
@@ -325,6 +316,7 @@ if st.session_state.calculos_feitos:
     if st.button("Gerar Arquivos") and lotes_pesos:
         melhor_resultado = st.session_state.melhor_resultado
         melhor_largura = st.session_state.melhor_largura
+        tabela_final = st.session_state.tabela_final
         
         planos_de_corte = melhor_resultado["Plano de Corte"].dropna().apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).tolist()
         colunas_adicionais = melhor_resultado[["Quantidade", "Largura Total", "Puxada"]]
