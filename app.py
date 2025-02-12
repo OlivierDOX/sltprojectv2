@@ -358,10 +358,7 @@ if st.session_state.calculos_feitos:
         # 2 - Criar lista para armazenar os resultados
         resultado_lista = []
         
-        # 3 - Criar dicionário para somar os pesos por largura
-        soma_pesos_por_largura = {}
-        
-        # 4 - Percorrer o dataframe e concatenar as colunas conforme a lógica
+        # 3 - Percorrer o dataframe e concatenar as colunas conforme a lógica
         tipo_corte = "Plano de corte"
         for index, row in df_planejamento_final.iterrows():
             linha_texto = f"{tipo_corte} {index + 1}: Lote - {row['Numero do Lote']} | Quantidade de puxadas = {row['Puxada']}"
@@ -374,38 +371,16 @@ if st.session_state.calculos_feitos:
                 peso = row.get(f"Peso {i}", "")
                 if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
                     linha_texto += f" | {largura}-{peso}"
-                    soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + float(peso)
             
             resultado_lista.append(linha_texto)
         
-        # 5 - Atualizar os valores de "Peso Total (kg)" na tabela_final
-        for i in range(len(tabela_final)):
-            largura_tabela = tabela_final.at[i, "Largura (mm)"]
-            if largura_tabela in soma_pesos_por_largura:
-                tabela_final.at[i, "Peso Total (kg)"] = soma_pesos_por_largura[largura_tabela]
-        
-        # 6 - Converter colunas numéricas para float
-        tabela_final["Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].astype(float)
-        tabela_final["Peso Total (kg)"] = tabela_final["Peso Total (kg)"].astype(float)
-        
-        # 7 - Atualizar a coluna "Atendimento (%)"
-        tabela_final["Atendimento (%)"] = (tabela_final["Demanda Planejada (kg)"] / tabela_final["Peso Total (kg)"]) * 100
-        # Arredondar para duas casas decimais
-        tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(2)
-        
-        # 8 - Atualizar a última linha (Total) da tabela_final
-        tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].sum()
-        tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = tabela_final["Peso Total (kg)"].sum()
-        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = (tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] / tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"]) * 100
-        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"].round(2)
-        
-        # 9 - Criar o arquivo TXT
+        # 4 - Criar o arquivo TXT
         resultado_txt = "\n".join(resultado_lista)
         
-        # 10 - Adicionar os resultados da tabela final
+        # 5 - Adicionar os resultados da tabela final
         resultado_txt += "\n\n" + tabela_final.to_string(index=False)
         
-        # 11 - Escrever no arquivo de saída
+        # 6 - Escrever no arquivo de saída
         with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
             file.write(resultado_txt)
         
@@ -418,11 +393,11 @@ if st.session_state.calculos_feitos:
         )
 
         st.download_button(
-                    label="Baixar Resultado (Excel)",
-                    data=output,
-                    file_name="resultado_corte_transformado.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+            label="Baixar Resultado (Excel)",
+            data=output,
+            file_name="resultado_corte_transformado.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 
 
