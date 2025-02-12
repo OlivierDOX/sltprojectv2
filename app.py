@@ -361,7 +361,7 @@ if st.session_state.calculos_feitos:
         # 3 - Percorrer o dataframe e concatenar as colunas conforme a lógica
         tipo_corte = "Plano de corte"
         for _, row in df_planejamento_final.iterrows():
-            linha_texto = f"{tipo_corte} {row['Plano de Corte']}: Quantidade de puxadas = {row['Puxada']}"
+            linha_texto = f"{tipo_corte} {row['Plano de Corte']}: Lote - {row['Numero do Lote']} | Quantidade de puxadas = {row['Puxada']}"
             
             colunas_largura_peso = [col for col in df_planejamento_final.columns if "Largura" in col or "Peso" in col]
             colunas_largura_peso.sort()  # Ordenar para garantir a sequência correta
@@ -369,7 +369,7 @@ if st.session_state.calculos_feitos:
             for i in range(1, len(colunas_largura_peso) // 2 + 1):
                 largura = row.get(f"Largura {i}", "")
                 peso = row.get(f"Peso {i}", "")
-                if largura and peso:
+                if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
                     linha_texto += f" | {largura}-{peso}"
             
             resultado_lista.append(linha_texto)
