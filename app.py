@@ -352,7 +352,46 @@ if st.session_state.calculos_feitos:
             df_planejamento_final.to_excel(writer, sheet_name="Planejamento Final", index=False)
         output.seek(0)
 
-        resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
+        # 1 - Remover duplicatas
+        df_planejamento_final = df_planejamento_final.drop_duplicates().reset_index(drop=True)
+        
+        # 2 - Criar lista para armazenar os resultados
+        resultado_lista = []
+        
+        # 3 - Percorrer o dataframe e concatenar as colunas conforme a lógica
+        tipo_corte = "Plano de corte"
+        for _, row in df_planejamento_final.iterrows():
+            linha_texto = f"{tipo_corte} {row['Plano de Corte']}: Quantidade de puxadas = {row['Puxada']}"
+            
+            colunas_largura_peso = [col for col in df_planejamento_final.columns if "Largura" in col or "Peso" in col]
+            colunas_largura_peso.sort()  # Ordenar para garantir a sequência correta
+            
+            for i in range(1, len(colunas_largura_peso) // 2 + 1):
+                largura = row.get(f"Largura {i}", "")
+                peso = row.get(f"Peso {i}", "")
+                if largura and peso:
+                    linha_texto += f" | {largura}-{peso}"
+            
+            resultado_lista.append(linha_texto)
+        
+        # 4 - Criar o arquivo TXT
+        resultado_txt = "\n".join(resultado_lista)
+        
+        # 5 - Adicionar os resultados da tabela final
+        resultado_txt += "\n\n" + tabela_final.to_string(index=False)
+        resultado_txt += "\n\n" + melhor_resultado.to_string(index=False)
+        
+        # 6 - Escrever no arquivo de saída
+        with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
+            file.write(resultado_txt)
+        
+        # Código para download do arquivo no Streamlit
+        st.download_button(
+            label="Baixar Resultado (TXT)",
+            data=resultado_txt,
+            file_name="resultado_planejamento.txt",
+            mime="text/plain"
+        )
 
         st.download_button(
             label="Baixar Resultado (Excel)",
@@ -361,11 +400,6 @@ if st.session_state.calculos_feitos:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        st.download_button(
-            label="Baixar Resultado (TXT)",
-            data=resultado_txt.encode("utf-8"),
-            file_name="resultado_corte.txt",
-            mime="text/plain"
-        )
+
 
   
