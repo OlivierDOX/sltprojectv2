@@ -278,7 +278,14 @@ def transformar_plano_de_corte(planos_de_corte):
     df_final = pd.DataFrame(processed_data, columns=column_names)
     return df_final
 
-calculos_feitos = False
+if "calculos_feitos" not in st.session_state:
+    st.session_state.calculos_feitos = False
+
+if "melhor_resultado" not in st.session_state:
+    st.session_state.melhor_resultado = None
+
+if "melhor_largura" not in st.session_state:
+    st.session_state.melhor_largura = None
 
 if st.button("Calcular"):
     if demand.empty:
@@ -299,6 +306,10 @@ if st.button("Calcular"):
             proporcao = peso_bobina / melhor_largura
             tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
 
+            st.session_state.melhor_resultado = melhor_resultado
+            st.session_state.melhor_largura = melhor_largura
+            st.session_state.calculos_feitos = True
+
             st.subheader("Melhor largura de bobina")
             st.write(f"{melhor_largura} mm")
 
@@ -307,13 +318,14 @@ if st.button("Calcular"):
 
             st.subheader("Tabela Final")
             st.dataframe(tabela_final)
-            
-            calculos_feitos = True
 
-if calculos_feitos:
+if st.session_state.calculos_feitos:
     lotes_pesos = input_lotes_pesos()
     
     if st.button("Gerar Arquivos") and lotes_pesos:
+        melhor_resultado = st.session_state.melhor_resultado
+        melhor_largura = st.session_state.melhor_largura
+        
         planos_de_corte = melhor_resultado["Plano de Corte"].dropna().apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).tolist()
         colunas_adicionais = melhor_resultado[["Quantidade", "Largura Total", "Puxada"]]
 
