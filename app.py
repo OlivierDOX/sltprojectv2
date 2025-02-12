@@ -219,7 +219,6 @@ def exibir_dataframe(df):
     st.dataframe(df, use_container_width=True, height=(len(df) * 35 + 50), hide_index=True)
 
 
-# Botão para calcular
 if st.button("Calcular"):
     if demand.empty:
         st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
@@ -260,12 +259,11 @@ if st.button("Calcular"):
                 mime="text/plain"
             )
 
-            # Criar um arquivo Excel
+            # Criar um arquivo Excel sem precisar do xlsxwriter
             output = io.BytesIO()
-            with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            with pd.ExcelWriter(output, engine="openpyxl") as writer:
                 melhor_resultado.to_excel(writer, sheet_name="Melhor Resultado", index=False)
                 tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
-                writer.close()
             output.seek(0)
 
             # Oferecer o arquivo Excel para download
