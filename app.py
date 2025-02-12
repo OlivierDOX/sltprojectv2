@@ -278,6 +278,8 @@ def transformar_plano_de_corte(planos_de_corte):
     df_final = pd.DataFrame(processed_data, columns=column_names)
     return df_final
 
+calculos_feitos = False
+
 if st.button("Calcular"):
     if demand.empty:
         st.error("Nenhuma demanda selecionada. Selecione ao menos um produto.")
