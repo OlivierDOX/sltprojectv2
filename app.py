@@ -13,20 +13,6 @@ st.title("Cálculo de Planos de Corte de Bobinas")
 limite_inferior = st.text_input("Limite Inferior (%)", "90")
 limite_superior = st.text_input("Limite Superior (%)", "130")
 
-def input_lotes_pesos():
-    st.sidebar.subheader("Definir Lotes e Pesos")
-    num_lotes = st.sidebar.number_input("Número de lotes", min_value=1, max_value=50, value=10, step=1)
-    lotes_pesos = {}
-    
-    for i in range(1, num_lotes + 1):
-        lote = f"LOTE{i}"
-        peso = st.sidebar.number_input(f"Peso do {lote}", min_value=0.01, value=23.50, step=0.01)
-        lotes_pesos[lote] = peso
-    
-    return lotes_pesos
-
-lotes_pesos = input_lotes_pesos()
-
 # Largura do Slitter
 larguras_bobina = [st.number_input("Largura utilizada no Slitter", min_value=1, value=1196, step=1)]
 
