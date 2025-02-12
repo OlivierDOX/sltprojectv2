@@ -374,7 +374,7 @@ if st.session_state.calculos_feitos:
                 peso = row.get(f"Peso {i}", "")
                 if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
                     linha_texto += f" | {largura}-{peso}"
-                    soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + peso
+                    soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + float(peso)
             
             resultado_lista.append(linha_texto)
         
@@ -384,24 +384,28 @@ if st.session_state.calculos_feitos:
             if largura_tabela in soma_pesos_por_largura:
                 tabela_final.at[i, "Peso Total (kg)"] = soma_pesos_por_largura[largura_tabela]
         
-        # 6 - Atualizar a coluna "Atendimento (%)"
+        # 6 - Converter colunas numéricas para float
+        tabela_final["Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].astype(float)
+        tabela_final["Peso Total (kg)"] = tabela_final["Peso Total (kg)"].astype(float)
+        
+        # 7 - Atualizar a coluna "Atendimento (%)"
         tabela_final["Atendimento (%)"] = (tabela_final["Demanda Planejada (kg)"] / tabela_final["Peso Total (kg)"]) * 100
         # Arredondar para duas casas decimais
         tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(2)
         
-        # 7 - Atualizar a última linha (Total) da tabela_final
+        # 8 - Atualizar a última linha (Total) da tabela_final
         tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].sum()
         tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = tabela_final["Peso Total (kg)"].sum()
         tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = (tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] / tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"]) * 100
         tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"].round(2)
         
-        # 8 - Criar o arquivo TXT
+        # 9 - Criar o arquivo TXT
         resultado_txt = "\n".join(resultado_lista)
         
-        # 9 - Adicionar os resultados da tabela final
+        # 10 - Adicionar os resultados da tabela final
         resultado_txt += "\n\n" + tabela_final.to_string(index=False)
         
-        # 10 - Escrever no arquivo de saída
+        # 11 - Escrever no arquivo de saída
         with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
             file.write(resultado_txt)
         
