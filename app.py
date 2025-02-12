@@ -19,6 +19,20 @@ larguras_bobina = [st.number_input("Largura utilizada no Slitter", min_value=1, 
 # Peso da bobina 
 peso_bobina = st.number_input("Peso da Bobina", min_value=1, value=23500, step=1)
 
+def input_lotes_pesos():
+    st.sidebar.subheader("Definir Lotes e Pesos")
+    num_lotes = st.sidebar.number_input("Número de lotes", min_value=1, max_value=50, value=10, step=1)
+    lotes_pesos = {}
+    
+    for i in range(1, num_lotes + 1):
+        lote = f"LOTE{i}"
+        peso = st.sidebar.number_input(f"Peso do {lote}", min_value=0.01, value=23.50, step=0.01)
+        lotes_pesos[lote] = peso
+    
+    return lotes_pesos
+
+lotes_pesos = input_lotes_pesos()
+
 try:
     limite_inferior = float(limite_inferior) / 100
     limite_superior = float(limite_superior) / 100
