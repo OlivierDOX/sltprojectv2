@@ -259,19 +259,18 @@ if st.button("Calcular"):
                 mime="text/plain"
             )
 
-            # Criar um arquivo Excel sem precisar do xlsxwriter
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                melhor_resultado.to_excel(writer, sheet_name="Melhor Resultado", index=False)
-                tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
+            # Criar um arquivo CSV para download
+            output = io.StringIO()
+            melhor_resultado.to_csv(output, index=False)
+            tabela_final.to_csv(output, index=False)
             output.seek(0)
 
-            # Oferecer o arquivo Excel para download
+            # Oferecer o arquivo CSV para download
             st.download_button(
-                label="Baixar Resultado (Excel)",
-                data=output,
-                file_name="resultado_corte.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                label="Baixar Resultado (CSV)",
+                data=output.getvalue(),
+                file_name="resultado_corte.csv",
+                mime="text/csv"
             )
         else:
             st.error("Nenhuma solução encontrada!")
