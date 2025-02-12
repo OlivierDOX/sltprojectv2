@@ -258,7 +258,7 @@ def transformar_plano_de_corte(planos_de_corte):
     # Criando os nomes das colunas dinamicamente
     column_names = ["Plano de Corte"]
     for i in range(1, (max_columns - 1) // 2 + 1):
-        column_names.extend([f"Largura {i}", f"Peso (kg) {i}"])
+        column_names.extend([f"Largura {i}", f"Peso {i}"])
 
     # Criando o DataFrame final
     df_final = pd.DataFrame(processed_data, columns=column_names)
@@ -311,7 +311,8 @@ if st.button("Calcular"):
             for col in df_planejamento_final.columns:
                 if "Peso" in col:
                     largura_col = col.replace("Peso", "Largura")
-                    df_planejamento_final[col] = (df_planejamento_final[largura_col] / 1200) * (df_planejamento_final["Peso do Lote"]) / df_planejamento_final["Puxada"]
+                    if largura_col in df_planejamento_final.columns:
+                        df_planejamento_final[col] = (df_planejamento_final[largura_col] / 1200) * (df_planejamento_final["Peso do Lote"]) / df_planejamento_final["Puxada"]
 
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
