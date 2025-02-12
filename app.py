@@ -342,7 +342,7 @@ if st.session_state.calculos_feitos:
             if "Peso" in col and col != "Peso do Lote":  # Evita alterar a coluna "Peso do Lote" diretamente
                 largura_col = col.replace("Peso", "Largura")
                 if largura_col in df_planejamento_final.columns:
-                    df_planejamento_final[col] = (df_planejamento_final[largura_col] / 1200) * (df_planejamento_final["Peso do Lote"]) / df_planejamento_final["Puxada"]
+                    df_planejamento_final[col] = round((df_planejamento_final[largura_col] / 1200) * (df_planejamento_final["Peso do Lote"]) / df_planejamento_final["Puxada"],2)
 
 
         output = io.BytesIO()
