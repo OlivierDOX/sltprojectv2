@@ -327,21 +327,23 @@ if st.session_state.calculos_feitos:
         df_planejamento_final = df_resultado.copy()
         
         # Passo 1: Duplicação/triplicação das linhas com base na coluna "Quantidade"
-        # 1 - Duplicação baseada em "Quantidade"
-        df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Quantidade"].fillna(1).astype(int))]
+        # 1 - Duplicação baseada em "Quantidade" (primeira expansão)
+        df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Quantidade"].fillna(1).astype(int))].reset_index(drop=True)
         
         # 2 - Adicionar colunas "Numero do Lote" e "Peso do Lote"
         df_planejamento_final["Numero do Lote"] = list(lotes_pesos.keys())[:len(df_planejamento_final)]
         df_planejamento_final["Peso do Lote"] = df_planejamento_final["Numero do Lote"].map(lotes_pesos)
         
-        # 3 - Segunda duplicação baseada em "Puxada"
-        df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Puxada"].fillna(1).astype(int))]
-
+        # 3 - Segunda duplicação baseada em "Puxada" (após adicionar lotes)
+        df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Puxada"].fillna(1).astype(int))].reset_index(drop=True)
+        
+        # 4 - Ajuste de peso para todas as colunas que contenham "Peso"
         for col in df_planejamento_final.columns:
-            if "Peso" in col:
+            if "Peso" in col and col != "Peso do Lote":  # Evita alterar a coluna "Peso do Lote" diretamente
                 largura_col = col.replace("Peso", "Largura")
                 if largura_col in df_planejamento_final.columns:
                     df_planejamento_final[col] = (df_planejamento_final[largura_col] / 1200) * (df_planejamento_final["Peso do Lote"]) / df_planejamento_final["Puxada"]
+
 
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
