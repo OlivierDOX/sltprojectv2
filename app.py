@@ -294,6 +294,7 @@ if st.button("Calcular"):
                     melhor_largura = largura_bobina
 
         if melhor_resultado is not None:
+            melhor_resultado2 = melhor_resultado.copy()
             proporcao = peso_bobina / melhor_largura
             tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
 
@@ -306,45 +307,32 @@ if st.button("Calcular"):
             st.subheader("Tabela Final")
             st.dataframe(tabela_final)
 
-            planos_de_corte = melhor_resultado["Plano de Corte"].dropna().apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x).tolist()
-            colunas_adicionais = melhor_resultado[["Quantidade", "Largura Total", "Puxada"]]
-
-            df_resultado = transformar_plano_de_corte(planos_de_corte)
-            df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
-
-            # Criando a aba "Planejamento Final" com os dados de "Transformação Feita"
-            df_planejamento_final = df_resultado.copy()
-            df_planejamento_final["Numero do Lote"] = list(lotes_pesos.keys())[:len(df_planejamento_final)]
-            df_planejamento_final["Peso do Lote"] = df_planejamento_final["Numero do Lote"].map(lotes_pesos)
-
-            # Expandindo as linhas com base em "Quantidade" e "Puxada"
-            df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Quantidade"].fillna(1).astype(int))]
-            df_planejamento_final = df_planejamento_final.loc[df_planejamento_final.index.repeat(df_planejamento_final["Puxada"].fillna(1).astype(int))]
-
-            # Atualizando valores das colunas de peso
-            for col in df_planejamento_final.columns:
-                if "Peso" in col:
-                    largura_col = col.replace("Peso", "Largura")
-                    if largura_col in df_planejamento_final.columns:
-                        df_planejamento_final[col] = (df_planejamento_final[largura_col] / 1200) * (df_planejamento_final["Peso do Lote"]) / df_planejamento_final["Puxada"]
-
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                df_resultado.to_excel(writer, sheet_name="Transformação Feita", index=False)
+            output1 = io.BytesIO()
+            with pd.ExcelWriter(output1, engine="openpyxl") as writer:
                 tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
-                df_planejamento_final.to_excel(writer, sheet_name="Planejamento Final", index=False)
-            output.seek(0)
+            output1.seek(0)
 
-            resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
-            
             st.download_button(
-                label="Baixar Resultado (Excel)",
-                data=output,
+                label="Baixar Resultado (Excel) - Planejamento Final",
+                data=output1,
                 file_name="resultado_corte_transformado.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
+            output2 = io.BytesIO()
+            with pd.ExcelWriter(output2, engine="openpyxl") as writer:
+                melhor_resultado2.to_excel(writer, sheet_name="Resultado", index=False)
+            output2.seek(0)
 
+            st.download_button(
+                label="Baixar Resultado (Excel) - Sem Planejamento Final",
+                data=output2,
+                file_name="resultado_corte_simples.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+            resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
+            
             st.download_button(
                 label="Baixar Resultado (TXT)",
                 data=resultado_txt.encode("utf-8"),
