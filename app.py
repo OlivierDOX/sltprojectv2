@@ -71,7 +71,7 @@ with st.expander("Selecione os produtos e defina os pesos"):
     produtos_selecionados = df_editado[df_editado["Selecionado"] == True]
 
 # Convertendo os produtos selecionados para o DataFrame final
-demand = produtos_selecionados[["Produto", "Peso"]].copy()  # Agora acessamos corretamente "Peso"
+demand = produtos_selecionados[["Produto", "Peso (kg)"]].copy()  # Agora acessamos corretamente "Peso"
 demand["Largura"] = demand["Produto"].map(produtos)  # Adiciona largura com base no dicionário original
 
 # Exibir a demanda selecionada
@@ -88,8 +88,8 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
                 combinacoes.append(combinacao)
     return combinacoes
 
-def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, demand):
-    proporcao = peso_bobina / largura_bobina
+def resolver_problema_corte(larguras_slitters, largura_bobina, _bobina, demand):
+    proporcao = _bobina / largura_bobina
 
     # Encontrar combinações possíveis
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
@@ -113,7 +113,7 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, peso_bobina, dema
 
     for _, row in demand.iterrows():
         largura = row["Largura"]
-        peso_necessario = row["Peso"]
+        peso_necessario = row["Peso (kg)"]
 
         problema += (
             lpSum(
@@ -182,7 +182,7 @@ def gerar_tabela_final(resultado, demand, proporcao):
     for _, row in demand.iterrows():
         produto = row["Produto"]
         largura = row["Largura"]
-        peso_planejado = row["Peso"]
+        peso_planejado = row["Peso (kg)"]
         peso_total = pesos_totais.get(largura, 0)
         percentual_atendido = (peso_total / peso_planejado * 100) if peso_planejado > 0 else 0
 
@@ -195,7 +195,7 @@ def gerar_tabela_final(resultado, demand, proporcao):
         })
 
     # Cálculo dos totais
-    total_peso_planejado = demand["Peso"].sum()
+    total_peso_planejado = demand["Peso (kg)"].sum()
     total_peso_atendido = sum(pesos_totais.values())
 
     totais = {
@@ -245,7 +245,7 @@ def transformar_plano_de_corte(planos_de_corte):
     # Criando os nomes das colunas dinamicamente
     column_names = ["Plano de Corte"]
     for i in range(1, (max_columns - 1) // 2 + 1):
-        column_names.extend([f"Largura {i}", f"Peso {i}"])
+        column_names.extend([f"Largura {i}", f"Peso (kg) {i}"])
 
     # Criando o DataFrame final
     df_final = pd.DataFrame(processed_data, columns=column_names)
