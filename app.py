@@ -358,7 +358,10 @@ if st.session_state.calculos_feitos:
         # 2 - Criar lista para armazenar os resultados
         resultado_lista = []
         
-        # 3 - Percorrer o dataframe e concatenar as colunas conforme a lógica
+        # 3 - Criar dicionário para somar os pesos por largura
+        soma_pesos_por_largura = {}
+        
+        # 4 - Percorrer o dataframe e concatenar as colunas conforme a lógica
         tipo_corte = "Plano de corte"
         for index, row in df_planejamento_final.iterrows():
             linha_texto = f"{tipo_corte} {index + 1}: Lote - {row['Numero do Lote']} | Quantidade de puxadas = {row['Puxada']}"
@@ -371,16 +374,23 @@ if st.session_state.calculos_feitos:
                 peso = row.get(f"Peso {i}", "")
                 if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
                     linha_texto += f" | {largura}-{peso}"
+                    soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + peso
             
             resultado_lista.append(linha_texto)
         
-        # 4 - Criar o arquivo TXT
+        # 5 - Atualizar os valores de "Peso Total (kg)" na tabela_final
+        for i in range(len(tabela_final)):
+            largura_tabela = tabela_final.at[i, "Largura (mm)"]
+            if largura_tabela in soma_pesos_por_largura:
+                tabela_final.at[i, "Peso Total (kg)"] = soma_pesos_por_largura[largura_tabela]
+        
+        # 6 - Criar o arquivo TXT
         resultado_txt = "\n".join(resultado_lista)
         
-        # 5 - Adicionar os resultados da tabela final
+        # 7 - Adicionar os resultados da tabela final
         resultado_txt += "\n\n" + tabela_final.to_string(index=False)
         
-        # 6 - Escrever no arquivo de saída
+        # 8 - Escrever no arquivo de saída
         with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
             file.write(resultado_txt)
         
@@ -390,13 +400,6 @@ if st.session_state.calculos_feitos:
             data=resultado_txt,
             file_name="resultado_planejamento.txt",
             mime="text/plain"
-        )
-
-        st.download_button(
-            label="Baixar Resultado (Excel)",
-            data=output,
-            file_name="resultado_corte_transformado.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
 
