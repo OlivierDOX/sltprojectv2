@@ -384,13 +384,24 @@ if st.session_state.calculos_feitos:
             if largura_tabela in soma_pesos_por_largura:
                 tabela_final.at[i, "Peso Total (kg)"] = soma_pesos_por_largura[largura_tabela]
         
-        # 6 - Criar o arquivo TXT
+        # 6 - Atualizar a coluna "Atendimento (%)"
+        tabela_final["Atendimento (%)"] = (tabela_final["Demanda Planejada (kg)"] / tabela_final["Peso Total (kg)"]) * 100
+        # Arredondar para duas casas decimais
+        tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(2)
+        
+        # 7 - Atualizar a última linha (Total) da tabela_final
+        tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].sum()
+        tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = tabela_final["Peso Total (kg)"].sum()
+        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = (tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] / tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"]) * 100
+        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"].round(2)
+        
+        # 8 - Criar o arquivo TXT
         resultado_txt = "\n".join(resultado_lista)
         
-        # 7 - Adicionar os resultados da tabela final
+        # 9 - Adicionar os resultados da tabela final
         resultado_txt += "\n\n" + tabela_final.to_string(index=False)
         
-        # 8 - Escrever no arquivo de saída
+        # 10 - Escrever no arquivo de saída
         with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
             file.write(resultado_txt)
         
