@@ -20,7 +20,7 @@ except ValueError:
     st.stop()
 
 # Largura da bobina fixa
-larguras_bobina = [1191, 1190, 1189, 1188]
+larguras_bobina = [1192]
 peso_bobina = 17715
 
 # Definições dos produtos
@@ -241,7 +241,6 @@ if st.button("Calcular"):
             # Gerar a tabela final usando o DataFrame de demandas
             tabela_final = gerar_tabela_final(melhor_resultado, demand, proporcao)
 
-
             st.subheader("Melhor largura de bobina")
             st.write(f"{melhor_largura} mm")
 
@@ -258,6 +257,22 @@ if st.button("Calcular"):
                 data=resultado_txt.encode("utf-8"),
                 file_name="resultado_corte.txt",
                 mime="text/plain"
+            )
+
+            # Criar um arquivo Excel
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+                melhor_resultado.to_excel(writer, sheet_name="Melhor Resultado", index=False)
+                tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
+                writer.close()
+            output.seek(0)
+
+            # Oferecer o arquivo Excel para download
+            st.download_button(
+                label="Baixar Resultado (Excel)",
+                data=output,
+                file_name="resultado_corte.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
             st.error("Nenhuma solução encontrada!")
