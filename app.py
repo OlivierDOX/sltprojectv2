@@ -291,6 +291,14 @@ if st.button("Calcular"):
                 tabela_final.to_excel(writer, sheet_name="Tabela Final", index=False)
             output.seek(0)
 
+            resultado_txt = tabela_final.to_string(index=False) + "\n\n" + melhor_resultado.to_string(index=False)
+            st.download_button(
+                label="Baixar Resultado (TXT)",
+                data=resultado_txt.encode("utf-8"),
+                file_name="resultado_corte.txt",
+                mime="text/plain"
+            )
+
             st.download_button(
                 label="Baixar Resultado (Excel)",
                 data=output,
