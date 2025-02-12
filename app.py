@@ -22,7 +22,7 @@ except ValueError:
 
 # Largura da bobina fixa
 larguras_bobina = [1196]
-peso_bobina = 17715
+peso_bobina = 23500
 
 # Definições dos produtos
 produtos = {
