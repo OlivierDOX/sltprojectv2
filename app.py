@@ -425,10 +425,6 @@ if st.session_state.calculos_feitos:
             })
             tabela_final = pd.concat([tabela_final, total_row], ignore_index=True)
         
-        tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = round(total_demanda, 2)
-        tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = round(total_peso, 2)
-        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = round(total_atendimento, 1)
-        
         # 10 - Renomear colunas
         tabela_final.rename(columns={
             "Demanda Planejada (kg)": "Demanda Planejada (ton)",
