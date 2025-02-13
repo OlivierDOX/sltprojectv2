@@ -415,9 +415,7 @@ if st.session_state.calculos_feitos:
         tabela_final["Demanda Planejada (kg)"] = pd.to_numeric(tabela_final["Demanda Planejada (kg)"], errors='coerce').round(2)
         tabela_final["Peso Total (kg)"] = pd.to_numeric(tabela_final["Peso Total (kg)"], errors='coerce')
         
-        # 9 - Recalcular a coluna "Atendimento (%)" linha por linha
-        tabela_final["Atendimento (%)"] = (tabela_final["Peso Total (kg)"] / tabela_final["Demanda Planejada (kg)"]) * 100
-        tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(1)
+        
         
         # 10 - Remover a linha de total existente, se houver
         tabela_final = tabela_final[tabela_final["Largura (mm)"] != "Total"]
@@ -431,6 +429,10 @@ if st.session_state.calculos_feitos:
         })
         
         tabela_final = pd.concat([tabela_final, total_values], ignore_index=True)
+
+        # 9 - Recalcular a coluna "Atendimento (%)" linha por linha
+        tabela_final["Atendimento (%)"] = (tabela_final["Peso Total (kg)"] / tabela_final["Demanda Planejada (kg)"]) * 100
+        tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(1)
         
         # 12 - Renomear colunas
         tabela_final.rename(columns={
