@@ -371,8 +371,12 @@ if st.session_state.calculos_feitos:
             colunas_largura_peso.sort()  # Ordenar para garantir a sequência correta
             
             for i in range(1, len(colunas_largura_peso) // 2 + 1):
-                largura = row.get(f"Largura {i}", "").strip()
-                peso = row.get(f"Peso {i}", "").strip()
+                largura = row.get(f"Largura {i}", "")
+                peso = row.get(f"Peso {i}", "")
+                if isinstance(largura, str):
+                    largura = largura.strip()
+                if isinstance(peso, str):
+                    peso = peso.strip()
                 if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
                     linha_texto += f" | {largura}-{peso}"
                     soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + float(peso)
@@ -386,9 +390,13 @@ if st.session_state.calculos_feitos:
                 peso_col = col.replace("Largura", "Peso")
                 if peso_col in df_planejamento_final_to_tabela_final.columns:
                     for _, row in df_planejamento_final_to_tabela_final.iterrows():
-                        largura = str(row[col]).strip()
-                        peso = str(row[peso_col]).strip()
-                        if pd.notna(largura) and pd.notna(peso) and largura.replace('.', '', 1).isdigit() and peso.replace('.', '', 1).isdigit():
+                        largura = row[col]
+                        peso = row[peso_col]
+                        if isinstance(largura, str):
+                            largura = largura.strip()
+                        if isinstance(peso, str):
+                            peso = peso.strip()
+                        if pd.notna(largura) and pd.notna(peso) and str(largura).replace('.', '', 1).isdigit() and str(peso).replace('.', '', 1).isdigit():
                             largura_peso_lista.append((float(largura), float(peso)))
         
         # Criar dataframe consolidado
