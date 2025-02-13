@@ -423,13 +423,14 @@ if st.session_state.calculos_feitos:
         tabela_final = tabela_final[tabela_final["Largura (mm)"] != "Total"]
         
         # 11 - Calcular e adicionar a nova linha de total
-        total_values = {
-            "Largura (mm)": "Total",
-            "Demanda Planejada (kg)": tabela_final["Demanda Planejada (kg)"].sum(),
-            "Peso Total (kg)": tabela_final["Peso Total (kg)"].sum(),
-            "Atendimento (%)": (tabela_final["Peso Total (kg)"].sum() / tabela_final["Demanda Planejada (kg)"].sum()) * 100 if tabela_final["Demanda Planejada (kg)"].sum() > 0 else 0
-        }
-        tabela_final = tabela_final.append(total_values, ignore_index=True)
+        total_values = pd.DataFrame({
+            "Largura (mm)": ["Total"],
+            "Demanda Planejada (kg)": [tabela_final["Demanda Planejada (kg)"].sum()],
+            "Peso Total (kg)": [tabela_final["Peso Total (kg)"].sum()],
+            "Atendimento (%)": [(tabela_final["Peso Total (kg)"].sum() / tabela_final["Demanda Planejada (kg)"].sum()) * 100 if tabela_final["Demanda Planejada (kg)"].sum() > 0 else 0]
+        })
+        
+        tabela_final = pd.concat([tabela_final, total_values], ignore_index=True)
         
         # 12 - Renomear colunas
         tabela_final.rename(columns={
