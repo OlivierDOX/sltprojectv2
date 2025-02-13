@@ -403,23 +403,26 @@ if st.session_state.calculos_feitos:
         df_largura_peso = pd.DataFrame(largura_peso_lista, columns=["largura", "peso"])
         df_largura_peso = df_largura_peso.groupby("largura", as_index=False).sum()
         
-        # 6 - Converter "Largura (mm)" para float antes da fusão
-        tabela_final["Largura (mm)"] = pd.to_numeric(tabela_final["Largura (mm)"], errors='coerce').round(0)
+        # 6 - Converter "Largura (mm)" para inteiro antes da fusão
+        tabela_final["Largura (mm)"] = pd.to_numeric(tabela_final["Largura (mm)"], errors='coerce').astype('Int64')
         
         # 7 - Atualizar "Peso Total (kg)" na tabela_final com os valores de df_largura_peso
         tabela_final = tabela_final.merge(df_largura_peso, left_on="Largura (mm)", right_on="largura", how="left").drop(columns=["largura"])
         tabela_final["Peso Total (kg)"] = tabela_final["peso"].fillna(tabela_final["Peso Total (kg)"])
         tabela_final = tabela_final.drop(columns=["peso"])
         
-        # 8 - Converter colunas numéricas para float
+        # 8 - Converter colunas numéricas para float e arredondar corretamente
         tabela_final["Demanda Planejada (kg)"] = pd.to_numeric(tabela_final["Demanda Planejada (kg)"], errors='coerce').round(2)
         tabela_final["Peso Total (kg)"] = pd.to_numeric(tabela_final["Peso Total (kg)"], errors='coerce')
         
         # 9 - Atualizar a última linha (Total) da tabela_final
-        tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].sum()
-        tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = tabela_final["Peso Total (kg)"].sum()
-        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = (tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] / tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"]) * 100
-        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"].round(1)
+        total_demanda = tabela_final["Demanda Planejada (kg)"].sum()
+        total_peso = tabela_final["Peso Total (kg)"].sum()
+        total_atendimento = (total_peso / total_demanda) * 100 if total_demanda > 0 else 0
+        
+        tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = round(total_demanda, 2)
+        tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = round(total_peso, 2)
+        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = round(total_atendimento, 1)
         
         # 10 - Renomear colunas
         tabela_final.rename(columns={
