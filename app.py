@@ -419,19 +419,19 @@ if st.session_state.calculos_feitos:
         tabela_final["Atendimento (%)"] = (tabela_final["Peso Total (kg)"] / tabela_final["Demanda Planejada (kg)"]) * 100
         tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(1)
         
-        # 10 - Atualizar ou substituir a última linha (Total) da tabela_final
+        # 10 - Remover a linha de total existente, se houver
+        tabela_final = tabela_final[tabela_final["Largura (mm)"] != "Total"]
+        
+        # 11 - Calcular e adicionar a nova linha de total
         total_values = {
-            "Largura (mm)": None,
+            "Largura (mm)": "Total",
             "Demanda Planejada (kg)": tabela_final["Demanda Planejada (kg)"].sum(),
             "Peso Total (kg)": tabela_final["Peso Total (kg)"].sum(),
             "Atendimento (%)": (tabela_final["Peso Total (kg)"].sum() / tabela_final["Demanda Planejada (kg)"].sum()) * 100 if tabela_final["Demanda Planejada (kg)"].sum() > 0 else 0
         }
-        if tabela_final.iloc[-1, 0] == "Total" or tabela_final.iloc[-1, 0] is None:
-            tabela_final.iloc[-1] = total_values
-        else:
-            tabela_final = tabela_final.append(total_values, ignore_index=True)
+        tabela_final = tabela_final.append(total_values, ignore_index=True)
         
-        # 11 - Renomear colunas
+        # 12 - Renomear colunas
         tabela_final.rename(columns={
             "Demanda Planejada (kg)": "Demanda Planejada (ton)",
             "Peso Total (kg)": "Peso Total (ton)"
