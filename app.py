@@ -371,8 +371,8 @@ if st.session_state.calculos_feitos:
             colunas_largura_peso.sort()  # Ordenar para garantir a sequência correta
             
             for i in range(1, len(colunas_largura_peso) // 2 + 1):
-                largura = row.get(f"Largura {i}", "")
-                peso = row.get(f"Peso {i}", "")
+                largura = row.get(f"Largura {i}", "").strip()
+                peso = row.get(f"Peso {i}", "").strip()
                 if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
                     linha_texto += f" | {largura}-{peso}"
                     soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + float(peso)
@@ -386,9 +386,9 @@ if st.session_state.calculos_feitos:
                 peso_col = col.replace("Largura", "Peso")
                 if peso_col in df_planejamento_final_to_tabela_final.columns:
                     for _, row in df_planejamento_final_to_tabela_final.iterrows():
-                        largura = row[col]
-                        peso = row[peso_col]
-                        if pd.notna(largura) and pd.notna(peso):
+                        largura = str(row[col]).strip()
+                        peso = str(row[peso_col]).strip()
+                        if pd.notna(largura) and pd.notna(peso) and largura.replace('.', '', 1).isdigit() and peso.replace('.', '', 1).isdigit():
                             largura_peso_lista.append((float(largura), float(peso)))
         
         # Criar dataframe consolidado
@@ -396,7 +396,7 @@ if st.session_state.calculos_feitos:
         df_largura_peso = df_largura_peso.groupby("largura", as_index=False).sum()
         
         # 6 - Converter "Largura (mm)" para float antes da fusão
-        tabela_final["Largura (mm)"] = tabela_final["Largura (mm)"].astype(float)
+        tabela_final["Largura (mm)"] = pd.to_numeric(tabela_final["Largura (mm)"], errors='coerce')
         
         # 7 - Atualizar "Peso Total (kg)" na tabela_final com os valores de df_largura_peso
         tabela_final = tabela_final.merge(df_largura_peso, left_on="Largura (mm)", right_on="largura", how="left").drop(columns=["largura"])
@@ -404,8 +404,8 @@ if st.session_state.calculos_feitos:
         tabela_final = tabela_final.drop(columns=["peso"])
         
         # 8 - Converter colunas numéricas para float
-        tabela_final["Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].astype(float)
-        tabela_final["Peso Total (kg)"] = tabela_final["Peso Total (kg)"].astype(float)
+        tabela_final["Demanda Planejada (kg)"] = pd.to_numeric(tabela_final["Demanda Planejada (kg)"], errors='coerce')
+        tabela_final["Peso Total (kg)"] = pd.to_numeric(tabela_final["Peso Total (kg)"], errors='coerce')
         
         # 9 - Atualizar a coluna "Atendimento (%)"
         tabela_final["Atendimento (%)"] = (tabela_final["Demanda Planejada (kg)"] / tabela_final["Peso Total (kg)"]) * 100
