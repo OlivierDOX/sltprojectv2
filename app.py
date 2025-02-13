@@ -14,7 +14,7 @@ limite_inferior = st.text_input("Limite Inferior (%)", "90")
 limite_superior = st.text_input("Limite Superior (%)", "130")
 
 # Largura do Slitter
-larguras_bobina = [st.number_input("Largura Utilizada no Slitter", min_value=1, value=1196, step=1)]
+larguras_bobina = [st.number_input("Largura Utilizada no Slitter (mm)", min_value=1, value=1196, step=1)]
 
 # Peso da bobina 
 peso_bobina = st.number_input("Peso Médio dos Lotes (kg)", min_value=1, value=23500, step=1)
