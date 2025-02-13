@@ -404,7 +404,7 @@ if st.session_state.calculos_feitos:
         df_largura_peso = df_largura_peso.groupby("largura", as_index=False).sum()
         
         # 6 - Converter "Largura (mm)" para float antes da fusão
-        tabela_final["Largura (mm)"] = pd.to_numeric(tabela_final["Largura (mm)"], errors='coerce')
+        tabela_final["Largura (mm)"] = pd.to_numeric(tabela_final["Largura (mm)"], errors='coerce').round(0)
         
         # 7 - Atualizar "Peso Total (kg)" na tabela_final com os valores de df_largura_peso
         tabela_final = tabela_final.merge(df_largura_peso, left_on="Largura (mm)", right_on="largura", how="left").drop(columns=["largura"])
@@ -412,19 +412,20 @@ if st.session_state.calculos_feitos:
         tabela_final = tabela_final.drop(columns=["peso"])
         
         # 8 - Converter colunas numéricas para float
-        tabela_final["Demanda Planejada (kg)"] = pd.to_numeric(tabela_final["Demanda Planejada (kg)"], errors='coerce')
+        tabela_final["Demanda Planejada (kg)"] = pd.to_numeric(tabela_final["Demanda Planejada (kg)"], errors='coerce').round(2)
         tabela_final["Peso Total (kg)"] = pd.to_numeric(tabela_final["Peso Total (kg)"], errors='coerce')
         
-        # 9 - Atualizar a coluna "Atendimento (%)"
-        tabela_final["Atendimento (%)"] = (tabela_final["Demanda Planejada (kg)"] / tabela_final["Peso Total (kg)"]) * 100
-        # Arredondar para duas casas decimais
-        tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(2)
-        
-        # 10 - Atualizar a última linha (Total) da tabela_final
+        # 9 - Atualizar a última linha (Total) da tabela_final
         tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].sum()
         tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = tabela_final["Peso Total (kg)"].sum()
-        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = (tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] / tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"]) * 100
-        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"].round(2)
+        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = (tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] / tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"]) * 100
+        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"].round(1)
+        
+        # 10 - Renomear colunas
+        tabela_final.rename(columns={
+            "Demanda Planejada (kg)": "Demanda Planejada (ton)",
+            "Peso Total (kg)": "Peso Total (ton)"
+        }, inplace=True)
         
         # 4 - Criar o arquivo TXT
         resultado_txt = "\n".join(resultado_lista)
