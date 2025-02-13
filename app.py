@@ -378,7 +378,7 @@ if st.session_state.calculos_feitos:
                 if isinstance(peso, str):
                     peso = peso.strip()
                 if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
-                    linha_texto += f" | {largura}-{peso}"
+                    linha_texto += f" | {largura}-{peso} ton"
                     soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + float(peso)
             
             resultado_lista.append(linha_texto)
