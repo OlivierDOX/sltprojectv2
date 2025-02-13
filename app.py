@@ -416,9 +416,14 @@ if st.session_state.calculos_feitos:
         tabela_final["Peso Total (kg)"] = pd.to_numeric(tabela_final["Peso Total (kg)"], errors='coerce')
         
         # 9 - Atualizar a última linha (Total) da tabela_final
-        total_demanda = tabela_final["Demanda Planejada (kg)"].sum()
-        total_peso = tabela_final["Peso Total (kg)"].sum()
-        total_atendimento = (total_peso / total_demanda) * 100 if total_demanda > 0 else 0
+        if "Total" not in tabela_final.iloc[-1, 0]:
+            total_row = pd.DataFrame({
+                "Largura (mm)": ["Total"],
+                "Demanda Planejada (kg)": [tabela_final["Demanda Planejada (kg)"].sum()],
+                "Peso Total (kg)": [tabela_final["Peso Total (kg)"].sum()],
+                "Atendimento (%)": [(tabela_final["Peso Total (kg)"].sum() / tabela_final["Demanda Planejada (kg)"].sum()) * 100 if tabela_final["Demanda Planejada (kg)"].sum() > 0 else 0]
+            })
+            tabela_final = pd.concat([tabela_final, total_row], ignore_index=True)
         
         tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = round(total_demanda, 2)
         tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = round(total_peso, 2)
