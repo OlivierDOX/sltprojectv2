@@ -421,12 +421,12 @@ if st.session_state.calculos_feitos:
         
         # 10 - Atualizar ou substituir a última linha (Total) da tabela_final
         total_values = {
-            "Largura (mm)": "Total",
+            "Largura (mm)": None,
             "Demanda Planejada (kg)": tabela_final["Demanda Planejada (kg)"].sum(),
             "Peso Total (kg)": tabela_final["Peso Total (kg)"].sum(),
             "Atendimento (%)": (tabela_final["Peso Total (kg)"].sum() / tabela_final["Demanda Planejada (kg)"].sum()) * 100 if tabela_final["Demanda Planejada (kg)"].sum() > 0 else 0
         }
-        if tabela_final.iloc[-1, 0] == "Total":
+        if tabela_final.iloc[-1, 0] == "Total" or tabela_final.iloc[-1, 0] is None:
             tabela_final.iloc[-1] = total_values
         else:
             tabela_final = tabela_final.append(total_values, ignore_index=True)
