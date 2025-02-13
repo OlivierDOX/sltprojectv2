@@ -358,6 +358,9 @@ if st.session_state.calculos_feitos:
         
         # 2 - Criar lista para armazenar os resultados
         resultado_lista = []
+
+        # 3 - Criar dicionário para somar os pesos por largura
+        soma_pesos_por_largura = {}
         
         # 3 - Percorrer o dataframe e concatenar as colunas conforme a lógica
         tipo_corte = "Plano de corte"
