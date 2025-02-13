@@ -17,7 +17,7 @@ limite_superior = st.text_input("Limite Superior (%)", "130")
 larguras_bobina = [st.number_input("Largura Utilizada no Slitter", min_value=1, value=1196, step=1)]
 
 # Peso da bobina 
-peso_bobina = st.number_input("Peso Médio dos Lotes", min_value=1, value=23500, step=1)
+peso_bobina = st.number_input("Peso Médio dos Lotes (kg)", min_value=1, value=23500, step=1)
 
 def input_lotes_pesos():
     st.sidebar.subheader("Definir Lotes e Pesos")
