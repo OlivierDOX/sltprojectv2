@@ -352,6 +352,7 @@ if st.session_state.calculos_feitos:
             df_planejamento_final.to_excel(writer, sheet_name="Planejamento Final", index=False)
         output.seek(0)
 
+        df_planejamento_final_to_tabela_final = df_planejamento_final
         # 1 - Remover duplicatas
         df_planejamento_final = df_planejamento_final.drop_duplicates().reset_index(drop=True)
         
@@ -371,8 +372,45 @@ if st.session_state.calculos_feitos:
                 peso = row.get(f"Peso {i}", "")
                 if pd.notna(largura) and pd.notna(peso) and largura != "" and peso != "":
                     linha_texto += f" | {largura}-{peso}"
+                    soma_pesos_por_largura[largura] = soma_pesos_por_largura.get(largura, 0) + float(peso)
             
             resultado_lista.append(linha_texto)
+        
+        # 5 - Criar um novo dataframe com "largura" e "peso"
+        largura_peso_lista = []
+        for col in df_planejamento_final_to_tabela_final.columns:
+            if "Largura" in col:
+                peso_col = col.replace("Largura", "Peso")
+                if peso_col in df_planejamento_final_to_tabela_final.columns:
+                    for _, row in df_planejamento_final_to_tabela_final.iterrows():
+                        largura = row[col]
+                        peso = row[peso_col]
+                        if pd.notna(largura) and pd.notna(peso):
+                            largura_peso_lista.append((largura, float(peso)))
+        
+        # Criar dataframe consolidado
+        df_largura_peso = pd.DataFrame(largura_peso_lista, columns=["largura", "peso"])
+        df_largura_peso = df_largura_peso.groupby("largura", as_index=False).sum()
+        
+        # 6 - Atualizar "Peso Total (kg)" na tabela_final com os valores de df_largura_peso
+        tabela_final = tabela_final.merge(df_largura_peso, left_on="Largura (mm)", right_on="largura", how="left").drop(columns=["largura"])
+        tabela_final["Peso Total (kg)"] = tabela_final["peso"].fillna(tabela_final["Peso Total (kg)"])
+        tabela_final = tabela_final.drop(columns=["peso"])
+        
+        # 7 - Converter colunas numéricas para float
+        tabela_final["Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].astype(float)
+        tabela_final["Peso Total (kg)"] = tabela_final["Peso Total (kg)"].astype(float)
+        
+        # 8 - Atualizar a coluna "Atendimento (%)"
+        tabela_final["Atendimento (%)"] = (tabela_final["Demanda Planejada (kg)"] / tabela_final["Peso Total (kg)"]) * 100
+        # Arredondar para duas casas decimais
+        tabela_final["Atendimento (%)"] = tabela_final["Atendimento (%)"].round(2)
+        
+        # 9 - Atualizar a última linha (Total) da tabela_final
+        tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] = tabela_final["Demanda Planejada (kg)"].sum()
+        tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"] = tabela_final["Peso Total (kg)"].sum()
+        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = (tabela_final.loc[tabela_final.index[-1], "Demanda Planejada (kg)"] / tabela_final.loc[tabela_final.index[-1], "Peso Total (kg)"]) * 100
+        tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"] = tabela_final.loc[tabela_final.index[-1], "Atendimento (%)"].round(2)
         
         # 4 - Criar o arquivo TXT
         resultado_txt = "\n".join(resultado_lista)
