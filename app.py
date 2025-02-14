@@ -486,9 +486,9 @@ if st.session_state.calculos_feitos:
         Limite superior:  {limite_superior*100}%
         Largura total do slitter: {larguras_bobina}
         Peso médio de bobina: {peso_bobina} kg
-        _______________________________________________
         
         O extrato abaixo considera o planejamento real, ele utiliza o peso real dos lotes para fazer o calculo de MTS de estoque e peso dos rolos do plano de corte. 
+___________________________________________________________________________________________________________________________________________________________________
         """
         
         resultado_txt = parametros_str  # Definir a string inicial
@@ -501,6 +501,9 @@ if st.session_state.calculos_feitos:
         # Converter a coluna "Largura" para inteiro
         df_lotexpeso["Largura"] = pd.to_numeric(df_lotexpeso["Largura"], errors='coerce').fillna(0).astype(int).astype(str)
         
+        # Substituir "0" na última linha da coluna "Largura" por "Total"
+        df_lotexpeso.loc[df_lotexpeso.index[-1], "Largura"] = "Total"
+
         resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
         
         # Expressão regular para substituir números decimais com ponto por vírgula
