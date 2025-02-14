@@ -479,22 +479,34 @@ if st.session_state.calculos_feitos:
 
         
         # 4 - Criar o arquivo TXT
-        parametros_str = f"""Parametros:
+        parametros_str = f"""
+        Parametros do Planejamento teórico:
         
         Limite inferior:  {limite_inferior*100}%
         Limite superior:  {limite_superior*100}%
         Largura total do slitter: {larguras_bobina}
         Peso médio de bobina: {peso_bobina} kg
+        _______________________________________________
+        
+        O extrato abaixo considera o planejamento real, ele utiliza o peso real dos lotes para fazer o calculo de MTS de estoque e peso dos rolos do plano de corte. 
         """
         
         resultado_txt = parametros_str  # Definir a string inicial
-        resultado_txt += "\n\n" + tabela_final.to_string(index=False)  # Adicionar tabela
-        resultado_txt += "\n\n" + "\n".join(resultado_lista)  # Transformar lista em string
+        resultado_txt += "\n\nEstoque planejado\n\n"
+        resultado_txt += tabela_final.to_string(index=False)  # Adicionar tabela
+        resultado_txt += "\n\nPlanos de Corte (utilizado para criação do pedido de produção)\n\n"
+        resultado_txt += "\n".join(resultado_lista)  # Transformar lista em string
+        
+        resultado_txt += "\n\nRelação Largura-Lote-Peso (utilizado para criação do pedido de produção)\n\n"
+        # Converter a coluna "Largura" para inteiro
+        df_lotexpeso["Largura"] = df_lotexpeso["Largura"].astype(int, errors='ignore')
+        
         resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
-
+        
         # Expressão regular para substituir números decimais com ponto por vírgula
         decimal_pattern = re.compile(r"(\d+)\.(\d+)")
         resultado_txt = decimal_pattern.sub(r"\1,\2", resultado_txt)
+
 
        
         # 6 - Escrever no arquivo de saída
