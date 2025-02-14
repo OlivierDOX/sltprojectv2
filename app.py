@@ -504,7 +504,7 @@ ________________________________________________________________________________
         # Substituir "0" na última linha da coluna "Largura" por "Total"
         df_lotexpeso.loc[df_lotexpeso.index[-1], "Largura"] = "Total"
 
-        resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
+        resultado_txt += "\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
         
         # Expressão regular para substituir números decimais com ponto por vírgula
         decimal_pattern = re.compile(r"(\d+)\.(\d+)")
