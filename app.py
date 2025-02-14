@@ -325,6 +325,7 @@ if st.session_state.calculos_feitos:
         df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
 
         df_planejamento_final = df_resultado.copy()
+        df_input_lotexpeso = df_resultado.copy()
         
         # Passo 1: Duplicação/triplicação das linhas com base na coluna "Quantidade"
         # 1 - Duplicação baseada em "Quantidade" (primeira expansão)
@@ -439,12 +440,55 @@ if st.session_state.calculos_feitos:
             "Demanda Planejada (kg)": "Demanda Planejada (ton)",
             "Peso Total (kg)": "Peso Total (ton)"
         }, inplace=True)
+
+        # Criando uma lista para armazenar os valores organizados
+        lista_dados = []
+        
+        # Identificar colunas de largura e peso dinamicamente
+        largura_cols = [col for col in df_input_lotexpeso.columns if col.startswith("Largura")]
+        peso_cols = [col.replace("Largura", "Peso") for col in largura_cols]
+        
+        # Percorrendo as colunas de largura e peso
+        for largura_col, peso_col in zip(largura_cols, peso_cols):
+            if largura_col in df_input_lotexpeso.columns and peso_col in df_input_lotexpeso.columns:
+                temp_df = df_input_lotexpeso[[largura_col, "Numero do Lote", peso_col]].dropna()
+                temp_df.columns = ["Largura", "Lote", "Peso"]
+                lista_dados.append(temp_df)
+        
+        # Concatenar os dados
+        df_lotexpeso = pd.concat(lista_dados, ignore_index=True)
+        
+        # Converter a coluna Peso para numérico
+        df_lotexpeso["Peso"] = pd.to_numeric(df_lotexpeso["Peso"], errors='coerce')
+        
+        # Agrupar por Largura e Lote e somar os pesos
+        df_lotexpeso = df_lotexpeso.groupby(["Largura", "Lote"], as_index=False).sum()
+        
+        # Remover linhas onde a largura está vazia
+        df_lotexpeso = df_lotexpeso[df_lotexpeso["Largura"] != ""]
+        
+        # Adicionar uma linha no final com o total da coluna "Peso"
+        total_peso = df_lotexpeso["Peso"].sum()
+        total_row = pd.DataFrame([["Total", "", total_peso]], columns=df_lotexpeso.columns)
+        
+        df_lotexpeso = pd.concat([df_lotexpeso, total_row], ignore_index=True)
+
         
         # 4 - Criar o arquivo TXT
-        resultado_txt = "\n".join(resultado_lista)
+        parametros_str = f"""Parametros:
         
-        # 5 - Adicionar os resultados da tabela final
-        resultado_txt += "\n\n" + tabela_final.to_string(index=False)
+        Limite inferior:  {limite_inferior}%
+        Limite superior:  {limite_superior}%
+        Largura total do slitter: {larguras_bobina}
+        Peso médio de bobina: {peso_bobina}
+        """
+        
+        resultado_txt = parametros_str  # Definir a string inicial
+        resultado_txt += "\n\n" + tabela_final.to_string(index=False)  # Adicionar tabela
+        resultado_txt += "\n\n" + resultado_lista  # Adicionar lista
+        resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
+
+
         
         # 6 - Escrever no arquivo de saída
         with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
