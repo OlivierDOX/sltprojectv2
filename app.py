@@ -491,9 +491,11 @@ if st.session_state.calculos_feitos:
         resultado_txt += "\n\n" + "\n".join(resultado_lista)  # Transformar lista em string
         resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
 
+        # Expressão regular para substituir números decimais com ponto por vírgula
+        decimal_pattern = re.compile(r"(\d+)\.(\d+)")
+        resultado_txt = decimal_pattern.sub(r"\1,\2", resultado_txt)
 
-
-        
+       
         # 6 - Escrever no arquivo de saída
         with open("resultado_planejamento.txt", "w", encoding="utf-8") as file:
             file.write(resultado_txt)
