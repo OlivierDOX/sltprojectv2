@@ -26,7 +26,7 @@ def input_lotes_pesos():
     lotes_pesos = {}
     
     for i in range(1, num_lotes + 1):
-        lote = st.sidebar.text_input(f"Nome do lote {i}", value="").replace(" ", "")
+        lote = st.sidebar.text_input(f"Nome do lote {i}", value="").replace(" ", "").replace("\t", "").replace("\n", "")
         peso = st.sidebar.number_input(f"Peso do {lote}", min_value=0.01, value=0.01, step=0.01)
         lotes_pesos[lote] = peso
     
