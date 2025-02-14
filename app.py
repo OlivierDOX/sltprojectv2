@@ -486,8 +486,9 @@ if st.session_state.calculos_feitos:
         
         resultado_txt = parametros_str  # Definir a string inicial
         resultado_txt += "\n\n" + tabela_final.to_string(index=False)  # Adicionar tabela
-        resultado_txt += "\n\n" + resultado_lista  # Adicionar lista
+        resultado_txt += "\n\n" + "\n".join(resultado_lista)  # Transformar lista em string
         resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
+
 
 
         
