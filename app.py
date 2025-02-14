@@ -499,7 +499,7 @@ if st.session_state.calculos_feitos:
         
         resultado_txt += "\n\nRelação Largura-Lote-Peso (utilizado para criação do pedido de produção)\n\n"
         # Converter a coluna "Largura" para inteiro
-        df_lotexpeso["Largura"] = df_lotexpeso["Largura"].astype(int, errors='ignore')
+        df_lotexpeso["Largura"] = df_lotexpeso["Largura"].apply(lambda x: int(round(x)))
         
         resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
         
@@ -515,9 +515,9 @@ if st.session_state.calculos_feitos:
         
         # Código para download do arquivo no Streamlit
         st.download_button(
-            label="Baixar Resultado (TXT)",
+            label="Planejamento Executivo (TXT)",
             data=resultado_txt,
-            file_name="resultado_planejamento.txt",
+            file_name="planejamento_executivo.txt",
             mime="text/plain"
         )
 
