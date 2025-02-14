@@ -499,7 +499,7 @@ if st.session_state.calculos_feitos:
         
         resultado_txt += "\n\nRelação Largura-Lote-Peso (utilizado para criação do pedido de produção)\n\n"
         # Converter a coluna "Largura" para inteiro
-        df_lotexpeso["Largura"] = df_lotexpeso["Largura"].apply(lambda x: int(round(x)))
+        df_lotexpeso["Largura"] = pd.to_numeric(df_lotexpeso["Largura"], errors='coerce').fillna(0).astype(int).astype(str)
         
         resultado_txt += "\n\n" + df_lotexpeso.to_string(index=False)  # Adicionar DataFrame
         
