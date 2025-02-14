@@ -353,6 +353,8 @@ if st.session_state.calculos_feitos:
             df_planejamento_final.to_excel(writer, sheet_name="Planejamento Final", index=False)
         output.seek(0)
 
+        df_input_lotexpeso = df_planejamento_final.copy()
+        
         df_planejamento_final_to_tabela_final = df_planejamento_final
         # 1 - Remover duplicatas
         df_planejamento_final = df_planejamento_final.drop_duplicates().reset_index(drop=True)
@@ -443,7 +445,7 @@ if st.session_state.calculos_feitos:
 
         # Criando uma lista para armazenar os valores organizados
         lista_dados = []
-        df_input_lotexpeso = df_planejamento_final.copy()
+        
         
         # Identificar colunas de largura e peso dinamicamente
         largura_cols = [col for col in df_input_lotexpeso.columns if col.startswith("Largura")]
@@ -478,10 +480,10 @@ if st.session_state.calculos_feitos:
         # 4 - Criar o arquivo TXT
         parametros_str = f"""Parametros:
         
-        Limite inferior:  {limite_inferior}%
-        Limite superior:  {limite_superior}%
+        Limite inferior:  {limite_inferior*100}%
+        Limite superior:  {limite_superior*100}%
         Largura total do slitter: {larguras_bobina}
-        Peso médio de bobina: {peso_bobina}
+        Peso médio de bobina: {peso_bobina} kg
         """
         
         resultado_txt = parametros_str  # Definir a string inicial
