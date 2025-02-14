@@ -325,7 +325,7 @@ if st.session_state.calculos_feitos:
         df_resultado = pd.concat([df_resultado, colunas_adicionais.reset_index(drop=True)], axis=1)
 
         df_planejamento_final = df_resultado.copy()
-        df_input_lotexpeso = df_resultado.copy()
+        
         
         # Passo 1: Duplicação/triplicação das linhas com base na coluna "Quantidade"
         # 1 - Duplicação baseada em "Quantidade" (primeira expansão)
@@ -443,6 +443,7 @@ if st.session_state.calculos_feitos:
 
         # Criando uma lista para armazenar os valores organizados
         lista_dados = []
+        df_input_lotexpeso = df_planejamento_final.copy()
         
         # Identificar colunas de largura e peso dinamicamente
         largura_cols = [col for col in df_input_lotexpeso.columns if col.startswith("Largura")]
