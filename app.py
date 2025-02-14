@@ -494,10 +494,10 @@ ________________________________________________________________________________
         resultado_txt = parametros_str  # Definir a string inicial
         resultado_txt += "\n\nEstoque planejado\n\n"
         resultado_txt += tabela_final.to_string(index=False)  # Adicionar tabela
-        resultado_txt += "\n\nPlanos de Corte (utilizado para criação do pedido de produção)\n\n"
+        resultado_txt += "\n\n\nPlanos de Corte (utilizado para criação do pedido de produção)\n\n"
         resultado_txt += "\n".join(resultado_lista)  # Transformar lista em string
         
-        resultado_txt += "\n\nRelação Largura-Lote-Peso (utilizado para criação do pedido de produção)\n\n"
+        resultado_txt += "\n\n\nRelação Largura-Lote-Peso (utilizado para criação do pedido de produção)\n\n"
         # Converter a coluna "Largura" para inteiro
         df_lotexpeso["Largura"] = pd.to_numeric(df_lotexpeso["Largura"], errors='coerce').fillna(0).astype(int).astype(str)
         
