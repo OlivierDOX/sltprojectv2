@@ -217,6 +217,10 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
 def resolver_problema_corte(larguras_slitters, largura_bobina, _bobina, demand):
     proporcao = _bobina / largura_bobina
 
+    # Filtrar larguras_slitters com base na demanda
+    larguras_validas = set(demand["Largura"])
+    larguras_slitters = [larg for larg in larguras_slitters if larg in larguras_validas]
+
     # Encontrar combinações possíveis
     combinacoes = encontra_combinacoes_possiveis(larguras_slitters, largura_bobina)
 
@@ -224,7 +228,6 @@ def resolver_problema_corte(larguras_slitters, largura_bobina, _bobina, demand):
         return None
 
     # Filtrar combinações para conter apenas larguras presentes na demanda
-    larguras_validas = set(demand["Largura"])
     combinacoes_filtradas = [
         comb for comb in combinacoes if set(comb).issubset(larguras_validas)
     ]
