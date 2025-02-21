@@ -47,6 +47,7 @@ except ValueError:
 produtos = {
     "Perfil UDC Simples 68x30x2,00x6000mm": 122,
     "Perfil UDC Simples 92x30x2,00x6000mm": 148,
+    "Perfil UDC Enrijecido 127x50x17x2,00x6000mm": 244,
     "Perfil UDC Simples 50x25x2,00x6000mm": 93,
     "Perfil UDC Simples 50x25x2,25x6000mm": 93,
     "Perfil UDC Simples 50x25x2,65x6000mm": 91,
