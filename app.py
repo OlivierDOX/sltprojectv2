@@ -228,10 +228,22 @@ st.dataframe(demand, use_container_width=True)
 
 def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
     combinacoes = []
-    for n in range(1, largura_bobina // min(larguras_slitters) + 1):
-        for combinacao in combinations_with_replacement(larguras_slitters, n):
-            if sum(combinacao) == largura_bobina:
-                combinacoes.append(combinacao)
+
+    # Ordena as larguras para melhorar a poda
+    larguras_slitters = sorted(set(larguras_slitters))
+
+    def buscar_combinacao(parcial, soma_parcial, idx):
+        if soma_parcial == largura_bobina:
+            resultado.append(tuple(parcial))  # Armazena como tupla
+            return
+        if soma_parcial > largura_bobina:
+            return  # Poda (não continua com soma maior que o desejado)
+
+        for i in range(idx, len(larguras_slitters)):
+            largura = larguras_slitters[i]
+            buscar_combinacao(parcial + [largura], soma_parcial + largura, i)  # Permite repetição
+
+    buscar_combinacao([], 0, 0)
     return combinacoes
 
 def resolver_problema_corte(larguras_slitters, largura_bobina, _bobina, demand):
