@@ -234,7 +234,7 @@ def encontra_combinacoes_possiveis(larguras_slitters, largura_bobina):
 
     def buscar_combinacao(parcial, soma_parcial, idx):
         if soma_parcial == largura_bobina:
-            resultado.append(tuple(parcial))  # Armazena como tupla
+            combinacoes.append(tuple(parcial))  # Armazena como tupla
             return
         if soma_parcial > largura_bobina:
             return  # Poda (não continua com soma maior que o desejado)
